@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace Objects
 {
     public class Mod
     {
+        [Key]
         public string ModId { get; set; }
         public string Name { get; set; }
         public string Version { get; set; }
