@@ -1,0 +1,35 @@
+﻿@using Microsoft.AspNetCore.Http
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    @if(Context.Session.GetString("userLoginToken") == null)
+    {
+        <p>To use the developer page, please register or log in to your account</p>
+    }
+    else
+    {
+        if(Context.Session.GetInt32("userRoleId") == 0)
+        {
+            <p>Your account has not been activated by an autoupdater manager. Contact FedesUy#2144 on Discord for more information</p>
+        }
+
+        if(Context.Session.GetInt32("userRoleId") == 1)
+        {
+            <p>You can start by using the "My Mods" or the "Create new mod" buttons on the navigation bar :)</p>
+        }
+
+        if(Context.Session.GetInt32("userRoleId") == 2)
+        {
+            <p>No info available for you :)</p>
+        }
+
+        if(Context.Session.GetInt32("userRoleId") == 3)
+        {
+            <p>Your account has been manually deactivated by an autoupdater manager. Contact FedesUy#2144 on Discord for more information about this.</p>
+        }
+    }
+
+</div>

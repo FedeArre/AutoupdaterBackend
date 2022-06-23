@@ -6,11 +6,15 @@ using System.Text;
 
 namespace DataAccess
 {
-    internal class AutoupdaterContext : DbContext
+    public class AutoupdaterContext : DbContext
     {
         public DbSet<Mod> Mods { get; set; }
         //public DbSet<Telemetry> Telemetry { get; set; }
         public DbSet<User> Users { get; set; }
+
+        public AutoupdaterContext(DbContextOptions<AutoupdaterContext> options)
+        : base(options)
+        { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

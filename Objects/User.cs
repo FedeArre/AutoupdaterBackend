@@ -15,8 +15,9 @@ namespace Objects
 
     public enum UserType
     {
-        Unverified = 1,
+        Unverified = 0,
         Modder,
-        AutoupdaterDev
+        AutoupdaterDev,
+        DisabledAccount
     }
 }

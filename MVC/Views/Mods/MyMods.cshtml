@@ -1,0 +1,33 @@
+﻿@model IEnumerable<Objects.Mod>
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+@if(Model.Count() == 0)
+{
+    <p>You don't have any mods, why you don't try creating one? :)</p>
+}
+else
+{
+    <table>
+        <tr>
+            <th>Mod ID</th>
+            <th>Mod name</th>
+            <th>Current version</th>
+            <th>Function</th>
+        </tr>
+        @foreach(var item in Model)
+        {
+            <tr>
+                <th>@item.ModId</th>
+                <th>@item.Name</th>
+                <th>@item.Version</th>
+                <th>
+                    <a href="NewVersion/@item.ModId">Upload new version</a>
+                </th>
+            </tr>
+        }
+    </table>
+}

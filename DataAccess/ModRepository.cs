@@ -6,8 +6,15 @@ using System.Text;
 
 namespace DataAccess
 {
-    internal class ModRepository : IModRepository
+    public class ModRepository : IModRepository
     {
+
+        private AutoupdaterContext db;
+        public ModRepository(AutoupdaterContext db)
+        {
+            this.db = db;
+        }
+
         public bool Add(Mod entity)
         {
             throw new NotImplementedException();
@@ -24,6 +31,11 @@ namespace DataAccess
         }
 
         public Mod FindById(string id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Mod FindByFileName(string fileName)
         {
             throw new NotImplementedException();
         }

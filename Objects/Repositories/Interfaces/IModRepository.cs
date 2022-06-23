@@ -6,6 +6,6 @@ namespace Objects.Repositories.Interfaces
 {
     public interface IModRepository : IRepository<Mod>
     {
-        
+        public Mod FindByFileName(string fileName);
     }
 }

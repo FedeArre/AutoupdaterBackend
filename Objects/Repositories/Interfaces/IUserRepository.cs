@@ -6,6 +6,6 @@ namespace Objects.Repositories.Interfaces
 {
     public interface IUserRepository : IRepository<User>
     {
-
+        public User Login(string username, string plainTextPassword);
     }
 }

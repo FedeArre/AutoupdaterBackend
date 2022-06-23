@@ -1,0 +1,29 @@
+﻿@model ModModel
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<h1>Create new mod</h1>
+
+@using (Html.BeginForm("Create", "Mods", FormMethod.Post))
+{
+    <label for="modName">Mod ID: </label>
+    @Html.TextBoxFor(m => m.ModId);<br />
+
+    <label for="modName">Mod name: </label>
+    @Html.TextBoxFor(m => m.ModName);<br />
+
+    <label for="modName">Mod version: </label>
+    @Html.TextBoxFor(m => m.ModVersion);<br />
+
+    <label for="modName">Download link: </label>
+    @Html.TextBoxFor(m => m.ModDownloadLink);<br />
+
+    <label for="modName">File name: </label>
+    @Html.TextBoxFor(m => m.ModFileName);<br />
+    <input type="submit" />
+}
+
+@ViewBag.Msg

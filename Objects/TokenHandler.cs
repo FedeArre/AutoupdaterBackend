@@ -31,7 +31,7 @@ namespace Objects
 
             TokenObject token = new TokenObject();
             token.Username = Username;
-            token.Token = new System.Guid().ToString();
+            token.Token = Guid.NewGuid().ToString();
             token.ExpirationTime = DateTimeOffset.Now.ToUnixTimeSeconds() + (60 * 60 * 3); // 3 hour
             Tokens.Add(token);
 
@@ -58,6 +58,42 @@ namespace Objects
             }
 
             return null;
+        }
+
+        public string IsUserLogged(User user)
+        {
+            foreach (TokenObject tokenObject in Tokens)
+            {
+                if (tokenObject.Username == user.Username)
+                {
+                    if (tokenObject.ExpirationTime < DateTimeOffset.Now.ToUnixTimeSeconds())
+                    {
+                        Tokens.Remove(tokenObject);
+                        return null;
+                    }
+                    else
+                    {
+                        RenewToken(tokenObject);
+                        return tokenObject.Token;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public bool DestroyUserToken(string username)
+        {
+            foreach (TokenObject tokenObject in Tokens)
+            {
+                if (tokenObject.Username == username)
+                {
+                    Tokens.Remove(tokenObject);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public bool RenewToken(TokenObject token)
