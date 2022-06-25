@@ -27,5 +27,10 @@ namespace DataAccess
         {
             throw new NotImplementedException();
         }
+
+        public bool Update(Telemetry entity)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -8,6 +8,7 @@ namespace Objects.Repositories.Interfaces
     {
         public bool Add(T entity);
         public bool Delete(T entity);
+        public bool Update(T entity);
         public T FindById(string id);
         public IEnumerable<T> FindAll();
     }

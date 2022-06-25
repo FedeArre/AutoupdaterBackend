@@ -1,0 +1,30 @@
+﻿@model ModModel
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+@if(Model == null)
+{
+    <p>Something went wrong!</p>
+}
+else
+{
+    <form method="post">
+        <p>Updating mod <b>@Model.ModName</b> (ID: <b>@Model.ModId</b>)</p>
+        <br>
+        <input type="hidden" value="@Model.ModId" asp-for="ModId">
+        <input type="hidden" value="@Model.ModName" asp-for="ModName">
+
+        <label>New version: </label>
+        @Html.TextBoxFor(m => m.ModVersion)<br />
+
+        <label>Download link: </label>
+        @Html.TextBoxFor(m => m.ModDownloadLink)<br />
+
+        <input type="submit">
+    </form>
+}
+
+@ViewBag.Msg

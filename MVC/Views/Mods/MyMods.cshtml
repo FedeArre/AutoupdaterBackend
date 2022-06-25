@@ -11,23 +11,29 @@
 }
 else
 {
-    <table>
-        <tr>
-            <th>Mod ID</th>
-            <th>Mod name</th>
-            <th>Current version</th>
-            <th>Function</th>
-        </tr>
-        @foreach(var item in Model)
-        {
+    <table class="table table-hover">
+        <thead>
             <tr>
-                <th>@item.ModId</th>
-                <th>@item.Name</th>
-                <th>@item.Version</th>
-                <th>
-                    <a href="NewVersion/@item.ModId">Upload new version</a>
-                </th>
+                <th scope="col">Mod ID</th>
+                <th scope="col">Mod name</th>
+                <th scope="col">Current version</th>
+                <th scope="col">Function</th>
             </tr>
-        }
+        </thead>
+        <tbody>
+            @foreach(var item in Model)
+            {
+                <tr>
+                    <th scope="row">@item.ModId</th>
+                    <th scope="row">@item.Name</th>
+                    <th scope="row">@item.Version</th>
+                    <th scope="row">
+                        <a href="NewVersion?modId=@item.ModId">Upload new version</a>
+                    </th>
+                </tr>
+            }
+        </tbody>
     </table>
 }
+
+@ViewBag.Msg

@@ -62,6 +62,11 @@ namespace DataAccess
             return account;
         }
 
+        public bool Update(User entity)
+        {
+            throw new NotImplementedException();
+        }
+
         private string HashPassword(string plainText)
         {
             return BC.HashPassword(plainText, BC.GenerateSalt(12));

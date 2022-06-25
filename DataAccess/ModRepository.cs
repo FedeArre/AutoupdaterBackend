@@ -2,6 +2,7 @@
 using Objects.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace DataAccess
@@ -17,27 +18,64 @@ namespace DataAccess
 
         public bool Add(Mod entity)
         {
-            throw new NotImplementedException();
+            try
+            {
+                db.Mods.Add(entity);
+                db.SaveChanges();
+                return true;
+            }
+            catch(Exception ex)
+            {
+                return false;
+            }
         }
 
         public bool Delete(Mod entity)
         {
-            throw new NotImplementedException();
+            try
+            {
+                db.Mods.Remove(entity);
+                db.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         public IEnumerable<Mod> FindAll()
         {
-            throw new NotImplementedException();
+            return db.Mods.ToList();
         }
 
         public Mod FindById(string id)
         {
-            throw new NotImplementedException();
+            return db.Mods.Where(m => m.ModId == id).FirstOrDefault();
         }
 
         public Mod FindByFileName(string fileName)
         {
-            throw new NotImplementedException();
+            return db.Mods.Where(m => m.FileName == fileName).FirstOrDefault();
+        }
+
+        public List<Mod> FindByAuthor(string author)
+        {
+            return db.Mods.Where(m => m.ModAuthor == author).ToList();
+        }
+
+        public bool Update(Mod entity)
+        {
+            try
+            {
+                db.Mods.Update(entity);
+                db.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
     }
 }
