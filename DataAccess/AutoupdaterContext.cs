@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MySql.Data.MySqlClient;
 using Objects;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,9 @@ namespace DataAccess
 
         public AutoupdaterContext(DbContextOptions<AutoupdaterContext> options)
         : base(options)
-        { }
+        { 
+
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

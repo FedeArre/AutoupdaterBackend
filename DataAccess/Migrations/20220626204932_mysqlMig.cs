@@ -2,7 +2,7 @@
 
 namespace DataAccess.Migrations
 {
-    public partial class init : Migration
+    public partial class mysqlMig : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

@@ -43,7 +43,7 @@ namespace DataAccess
 
         public IEnumerable<User> FindAll()
         {
-            throw new NotImplementedException();
+            return db.Users.ToList();
         }
 
         public User FindById(string id)

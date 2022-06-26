@@ -7,13 +7,13 @@ using System.Collections.Generic;
 
 namespace MVC.Controllers.API
 {
-    [Route("api/[controller]")]
+    [Route("api")]
     [ApiController]
-    public class ModsController : ControllerBase
+    public class ApiController : ControllerBase
     {
         private IModRepository modsRepo;
 
-        public ModsController(IModRepository modsRepo)
+        public ApiController(IModRepository modsRepo)
         {
             this.modsRepo = modsRepo;
         }
