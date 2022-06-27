@@ -18,8 +18,7 @@ namespace MVC.Controllers.API
             this.modsRepo = modsRepo;
         }
 
-        // GET api/<ComprasController>/5
-        [HttpGet, Route("Mods")]
+        [HttpPost, Route("Mods")]
         public ActionResult<List<ModToSendDTO>> Mods([FromBody] ModsDTO modsList)
         {
             if (modsList == null || modsList.mods == null)
@@ -54,5 +53,7 @@ namespace MVC.Controllers.API
 
             return Ok(modsToUpdate);
         }
+
+
     }
 }

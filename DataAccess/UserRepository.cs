@@ -64,7 +64,16 @@ namespace DataAccess
 
         public bool Update(User entity)
         {
-            throw new NotImplementedException();
+            try
+            {
+                db.Users.Update(entity);
+                db.SaveChanges();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private string HashPassword(string plainText)

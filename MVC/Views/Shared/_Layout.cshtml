@@ -41,6 +41,14 @@
                                 </li>
                             }
 
+                            if(Context.Session.GetInt32("userRoleId") == 2)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="ManageUsers">Manage users</a>
+                                </li>
+                            }
+
+
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Logout">Logout</a>
                             </li>
