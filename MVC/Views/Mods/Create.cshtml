@@ -5,25 +5,43 @@
 @{
 }
 
-<h1>Create new mod</h1>
 
-@using (Html.BeginForm("Create", "Mods", FormMethod.Post))
-{
-    <label for="modName">Mod ID: </label>
-    @Html.TextBoxFor(m => m.ModId);<br />
 
-    <label for="modName">Mod name: </label>
-    @Html.TextBoxFor(m => m.ModName);<br />
+<div class="container">
+    <div class="row">
+        <div class="col-5">
+            <h2>Create new mod</h2>
 
-    <label for="modName">Mod version: </label>
-    @Html.TextBoxFor(m => m.ModVersion);<br />
+            @using (Html.BeginForm("Create", "Mods", FormMethod.Post))
+            {
+                <label for="modId" class="form-label">Mod ID: </label>
+                @Html.TextBoxFor(m => m.ModId, new { @class = "form-control"})
+;
+            <br />
 
-    <label for="modName">Download link: </label>
-    @Html.TextBoxFor(m => m.ModDownloadLink);<br />
+            <label for="modName" class="form-label">Mod name: </label>
+            @Html.TextBoxFor(m => m.ModName, new { @class = "form-control"})
+;
+            <br />
 
-    <label for="modName">File name: </label>
-    @Html.TextBoxFor(m => m.ModFileName);<br />
-    <input type="submit" />
-}
+            <label for="modVersion" class="form-label">Mod version: </label>
+            @Html.TextBoxFor(m => m.ModVersion, new { @class = "form-control" })
+;
+            <br />
 
+            <label for="modDownloadLink" class="form-label">Download link: </label>
+            @Html.TextBoxFor(m => m.ModDownloadLink, new { @class = "form-control"})
+;
+            <br />
+
+            <label for="modFileName" class="form-label">File name: </label>
+            @Html.TextBoxFor(m => m.ModFileName, new { @class = "form-control"})
+;
+            <br />
+            <input type="submit" class="btn btn-primary"/>
+            }
+
+        </div>
+    </div>
+</div>
 @ViewBag.Msg

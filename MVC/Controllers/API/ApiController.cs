@@ -54,6 +54,13 @@ namespace MVC.Controllers.API
             return Ok(modsToUpdate);
         }
 
-
+        [HttpGet, Route("Autoupdater")]
+        public ActionResult<AutoupdaterDTO> Autoupdater()
+        {
+            AutoupdaterDTO auto = new AutoupdaterDTO();
+            auto.current_version = "v1.2.0";
+            auto.download_link = "empty";
+            return Ok(auto);
+        }
     }
 }

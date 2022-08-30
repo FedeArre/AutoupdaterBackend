@@ -4,16 +4,25 @@
 @{
 }
 
-<h1> Register </h1>
+<div class="container">
+    <div class="row">
+        <div class="col-5">
+            
+            <h2> Register </h2>
+            <form method="post">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username: </label>
+                    <input name="username" type="text" value="@ViewBag.Username" class="form-control"/><br />
+                </div>
 
-<form method="post">
-    <label for="username">Username: </label>
-    <input name="username" type="text" value="@ViewBag.Username"/><br />
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password: </label>
+                    <input name="password" type="password" class="form-control" /><br />
+                </div>
 
-    <label for="password">Password: </label>
-    <input name="password" type="password" /><br />
-
-    <input type="submit" />
-</form>
-
+                <input type="submit" class="btn btn-primary"/>
+            </form>
+        </div>
+    </div>
+</div>
 @ViewBag.Msg
