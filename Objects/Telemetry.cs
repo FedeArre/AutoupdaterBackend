@@ -7,7 +7,9 @@ namespace Objects
 {
     public class Telemetry
     {
-        public string ModId;
-        public int Count;
+        [Key]
+        public string IP;
+        public long Timestamp;
+        public List<string> UsingMods = new List<string>();
     }
 }

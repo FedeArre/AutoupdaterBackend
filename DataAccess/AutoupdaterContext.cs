@@ -22,6 +22,7 @@ namespace DataAccess
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Ignore<Telemetry>();
+            modelBuilder.Ignore<TelemetryHandler>();
         }
     }
 }

@@ -46,22 +46,44 @@ namespace DataAccess
 
         public IEnumerable<Mod> FindAll()
         {
-            return db.Mods.ToList();
+            var mods = db.Mods.ToList();
+
+            foreach (Mod m in mods)
+            {
+                m.CPC = TelemetryHandler.GetInstance().GetCurrentPlayerCount(m.ModId);
+            }
+
+            return mods;
         }
 
         public Mod FindById(string id)
         {
-            return db.Mods.Where(m => m.ModId == id).FirstOrDefault();
+            var m = db.Mods.Where(m => m.ModId == id).FirstOrDefault();
+            if(m != null)
+                m.CPC = TelemetryHandler.GetInstance().GetCurrentPlayerCount(m.ModId);
+            return m;
         }
 
         public Mod FindByFileName(string fileName)
         {
-            return db.Mods.Where(m => m.FileName == fileName).FirstOrDefault();
+            var m = db.Mods.Where(m => m.FileName == fileName).FirstOrDefault();
+
+            if (m != null)
+                m.CPC = TelemetryHandler.GetInstance().GetCurrentPlayerCount(m.ModId);
+            
+            return m;
         }
 
         public List<Mod> FindByAuthor(string author)
         {
-            return db.Mods.Where(m => m.ModAuthor == author).ToList();
+            var mods = db.Mods.Where(m => m.ModAuthor == author).ToList();
+            
+            foreach(Mod m in mods)
+            {
+                m.CPC = TelemetryHandler.GetInstance().GetCurrentPlayerCount(m.ModId);
+            }
+            
+            return mods;
         }
 
         public bool Update(Mod entity)

@@ -4,8 +4,9 @@ using System.Text;
 
 namespace Objects.Repositories.Interfaces
 {
-    public interface ITelemetryRepository : IRepository<Telemetry>
+    public interface ITelemetryRepository
     {
-
+        public bool Add(Telemetry entity);
+        public int GetCurrentPlayerCount(string modId);
     }
 }
