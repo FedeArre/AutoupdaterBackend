@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MVC.DiscordBot;
 using Objects;
 using Objects.Repositories.Interfaces;
 using System;
@@ -68,7 +69,7 @@ namespace MVC
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor |
                                    ForwardedHeaders.XForwardedProto
             });
-            
+
             app.UseStaticFiles();
             app.UseSession();
 
@@ -82,7 +83,7 @@ namespace MVC
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
-            
+
             app.UseAuthentication();
 
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
@@ -90,6 +91,8 @@ namespace MVC
                 var context = serviceScope.ServiceProvider.GetRequiredService<AutoupdaterContext>();
                 context.Database.Migrate();
             }
+
+            new BotHandler(Configuration).MainAsync();
         }
     }
 }
