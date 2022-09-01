@@ -92,7 +92,8 @@ namespace MVC
                 context.Database.Migrate();
             }
 
-            new BotHandler(Configuration).MainAsync();
+            BotHandler.GetInstance().Configuration = Configuration;
+            BotHandler.GetInstance().MainAsync();
         }
     }
 }
