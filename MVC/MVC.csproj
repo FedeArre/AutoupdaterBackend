@@ -26,4 +26,8 @@
     <ProjectReference Include="..\Objects\Objects.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\modfiles\" />
+  </ItemGroup>
+
 </Project>

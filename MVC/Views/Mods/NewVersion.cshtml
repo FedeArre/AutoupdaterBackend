@@ -11,20 +11,54 @@
 }
 else
 {
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         <p>Updating mod <b>@Model.ModName</b> (ID: <b>@Model.ModId</b>)</p>
         <br>
         <input type="hidden" value="@Model.ModId" asp-for="ModId">
         <input type="hidden" value="@Model.ModName" asp-for="ModName">
 
+
         <label>New version: </label>
         @Html.TextBoxFor(m => m.ModVersion)<br />
 
-        <label>Download link: </label>
-        @Html.TextBoxFor(m => m.ModDownloadLink)<br />
+        <label for="loadingType">File upload method:</label><br />
+        <input type="radio" name="uploadMethod" id="uploadMethodLink" value="link" onchange="updateDivs()" checked />
+        <label for="uploadMethod">Direct download link</label><br />
+        <input type="radio" name="uploadMethod" id="uploadMethodFile" value="file" onchange="updateDivs()" />
+        <label for="uploadMethod">Upload file to server (10MB max. size)</label><br />
+
+        <div id="uploadLinkDiv">
+            <br>
+            <label for="modDownloadLink" class="form-label">Download link: </label>
+            @Html.TextBoxFor(m => m.ModDownloadLink)
+        </div>
+
+        <div id="uploadFileDiv" style="display:none">
+            <br>
+            <label for="modUploadDialog" class="form-label">Upload your mod: </label>
+            <input type="file" name="ModFile" id="modFileUpload">
+        </div>
 
         <input type="submit">
     </form>
 }
 
 @ViewBag.Msg
+<script>
+    function updateDivs()
+    {
+        document.querySelector("#modFileUpload").value = null;
+        document.querySelector("#ModDownloadLink").value = null;
+        let uploadMethodFile = document.querySelector("#uploadMethodFile").checked;
+        if(uploadMethodFile)
+        {
+            document.querySelector("#uploadFileDiv").style.display = "block";
+            document.querySelector("#uploadLinkDiv").style.display = "none";
+        }
+        else
+        {
+            document.querySelector("#uploadFileDiv").style.display = "none";
+            document.querySelector("#uploadLinkDiv").style.display = "block";
+        }
+    }
+</script>
