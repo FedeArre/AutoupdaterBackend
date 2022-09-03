@@ -17,7 +17,7 @@ namespace Objects
         {
             ModData = new Dictionary<string, Telemetry>();
             var startTimeSpan = TimeSpan.Zero;
-            var periodTimeSpan = TimeSpan.FromMinutes(1);
+            var periodTimeSpan = TimeSpan.FromSeconds(20);
 
             timer = new System.Threading.Timer((e) =>
             {

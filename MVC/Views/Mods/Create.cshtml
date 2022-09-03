@@ -29,6 +29,8 @@
 ;
             <br />
 
+            <label for="loadingType">File upload method:</label>
+            <input type="radio" name="uploadMethod" value="file"/><label for="uploadMethod">Upload file to server (10MB max. size)</label>
             <label for="modDownloadLink" class="form-label">Download link: </label>
             @Html.TextBoxFor(m => m.ModDownloadLink, new { @class = "form-control"})
 ;
@@ -45,3 +47,7 @@
     </div>
 </div>
 @ViewBag.Msg
+
+<script
+
+></script>

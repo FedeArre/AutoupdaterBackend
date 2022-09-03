@@ -38,7 +38,7 @@ namespace MVC.DiscordBot
             _playerCountChannel = await _server.GetChannelAsync(ulong.Parse(Configuration["currentPlayersChannelId"]));
 
             var startTimeSpan = TimeSpan.Zero;
-            var periodTimeSpan = TimeSpan.FromSeconds(30);
+            var periodTimeSpan = TimeSpan.FromSeconds(20);
 
             _timer = new System.Threading.Timer((e) =>
             {
