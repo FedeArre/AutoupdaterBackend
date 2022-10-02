@@ -2,38 +2,21 @@
 using DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(AutoupdaterContext))]
-    partial class AutoupdaterContextModelSnapshot : ModelSnapshot
+    [Migration("20220918164307_earlyAccessUpdate")]
+    partial class earlyAccessUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "3.1.26")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
-
-            modelBuilder.Entity("Objects.EarlyAccessStatus", b =>
-                {
-                    b.Property<string>("ModId")
-                        .HasColumnType("varchar(127)")
-                        .HasMaxLength(127);
-
-                    b.Property<string>("Steam64")
-                        .HasColumnType("varchar(127)")
-                        .HasMaxLength(127);
-
-                    b.Property<string>("Username")
-                        .HasColumnType("varchar(127)")
-                        .HasMaxLength(127);
-
-                    b.HasKey("ModId", "Steam64");
-
-                    b.ToTable("EarlyAccess");
-                });
 
             modelBuilder.Entity("Objects.Mod", b =>
                 {

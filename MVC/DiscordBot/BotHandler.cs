@@ -16,9 +16,6 @@ namespace MVC.DiscordBot
 
         private Timer _timer;
         private DiscordSocketClient _client;
-        private IGuild _server;
-        private IGuildChannel _playerCountChannel;
-        
         public async Task MainAsync()
         {
             string token = Configuration["Token"];
@@ -34,9 +31,6 @@ namespace MVC.DiscordBot
 
         private async Task OnBotLogin()
         {
-            _server = _client.GetGuild(ulong.Parse(Configuration["modUtils_serverId"]));
-            _playerCountChannel = await _server.GetChannelAsync(ulong.Parse(Configuration["currentPlayersChannelId"]));
-
             var startTimeSpan = TimeSpan.Zero;
             var periodTimeSpan = TimeSpan.FromSeconds(20);
 
@@ -48,17 +42,7 @@ namespace MVC.DiscordBot
 
         public async Task UpdatePlayerCountChannel()
         {
-            if(_server == null)
-            {
-                _server = _client.GetGuild(ulong.Parse(Configuration["modUtils_serverId"]));
-            }
-
-            if(_playerCountChannel == null)
-            {
-                _playerCountChannel = await _server.GetChannelAsync(ulong.Parse(Configuration["currentPlayersChannelId"]));
-            }
-
-            await _playerCountChannel.ModifyAsync(x => x.Name = $"Current players: {TelemetryHandler.GetInstance().GetCurrentPlayerCount("ModUtils")}");
+            await _client.SetActivityAsync(new Game($"{TelemetryHandler.GetInstance().GetCurrentPlayerCount("ModUtils")} players using ModUtils", ActivityType.Watching, ActivityProperties.None));
         }
 
         // Singleton

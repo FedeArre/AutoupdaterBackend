@@ -15,5 +15,6 @@ namespace Objects
         public string FileName { get; set; }
         public string ModAuthor { get; set; }
         public int CPC { get; set; } // Current player count
+        public bool EarlyAccessEnabled { get; set; }
     }
 }

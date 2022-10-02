@@ -35,6 +35,7 @@ namespace MVC
 
             services.AddScoped<IModRepository, ModRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IEarlyAccessRepository, EarlyAccessRepository>();
 
             services.AddDbContext<AutoupdaterContext>(options =>
             {

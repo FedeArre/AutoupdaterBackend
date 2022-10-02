@@ -76,5 +76,15 @@ namespace Objects
                 ModData.Remove(s);
             }
         }
+
+        public List<string> GetAllIdentifiers()
+        {
+            List<string> toReturn = new List<string>();
+            foreach (KeyValuePair<string, Telemetry> entry in ModData)
+            {
+                toReturn.Add(entry.Key);
+            }
+            return toReturn;
+        }
     }
 }

@@ -5,6 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Migrations\20220918181626_earlyAccess3.cs" />
+    <Compile Remove="Migrations\20220918181626_earlyAccess3.Designer.cs" />
+    <Compile Remove="Migrations\20220918181833_earlyAccess4.cs" />
+    <Compile Remove="Migrations\20220918181833_earlyAccess4.Designer.cs" />
+    <Compile Remove="Migrations\20220918182120_earlyAccess5.cs" />
+    <Compile Remove="Migrations\20220918182120_earlyAccess5.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.2.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.26" />

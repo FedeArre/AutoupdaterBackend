@@ -6,6 +6,7 @@ using Objects.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.HttpOverrides;
+using MVC.Models;
 
 namespace MVC.Controllers.API
 {
@@ -14,10 +15,12 @@ namespace MVC.Controllers.API
     public class ApiController : ControllerBase
     {
         private IModRepository modsRepo;
+        private IEarlyAccessRepository earlyRepo;
         
-        public ApiController(IModRepository modsRepo)
+        public ApiController(IModRepository modsRepo, IEarlyAccessRepository earlyRepo)
         {
             this.modsRepo = modsRepo;
+            this.earlyRepo = earlyRepo;
         }
 
         [HttpPost, Route("Mods")]
@@ -80,6 +83,32 @@ namespace MVC.Controllers.API
             }
 
             return Ok(true);
+        }
+
+        [HttpPost, Route("eacheck")]
+        public ActionResult<bool> EarlyAccess(EarlyAccessJson eaj)
+        {
+            
+            if (eaj == null || eaj.ModId == null || eaj.SteamId == null)
+                return BadRequest();
+
+            Mod m = modsRepo.FindById(eaj.ModId);
+            if(m == null || !m.EarlyAccessEnabled)
+            {
+                return Ok(false);
+            }
+
+            EarlyAccessStatus eas = null;
+            foreach (var ea in earlyRepo.FindByModId(eaj.ModId))
+            {
+                if (ea.Steam64 == eaj.SteamId)
+                {
+                    eas = ea;
+                    break;
+                }
+            }
+            
+            return Ok(eas != null);
         }
 
         [HttpGet, Route("Autoupdater")]

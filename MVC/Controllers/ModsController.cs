@@ -15,11 +15,13 @@ namespace MVC.Controllers
     {
         private IModRepository modsRepo;
         private IUserRepository userRepo;
+        private IEarlyAccessRepository earlyRepo;
 
-        public ModsController(IModRepository mods, IUserRepository users)
+        public ModsController(IModRepository mods, IUserRepository users, IEarlyAccessRepository earlyAccess)
         {
             modsRepo = mods;
             userRepo = users;
+            earlyRepo = earlyAccess;
         }
 
         // Create
@@ -69,13 +71,13 @@ namespace MVC.Controllers
             }
 
             Mod existingMod = modsRepo.FindById(modData.ModId);
-            if(existingMod != null)
+            if (existingMod != null)
             {
                 ViewBag.Msg = "A mod already exists with this id!";
                 return View(modData);
             }
 
-            if(!modData.ModFileName.EndsWith(".dll"))
+            if (!modData.ModFileName.EndsWith(".dll"))
             {
                 modData.ModFileName += ".dll";
             }
@@ -126,26 +128,26 @@ namespace MVC.Controllers
                 User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
                 if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
                 {
-                    if(modData.ModFile.Length > 10485761 && modData.ModId != "ModUtils") // 10MB size check (but allowing ModUtils)
+                    if (modData.ModFile.Length > 10485761 && modData.ModId != "ModUtils") // 10MB size check (but allowing ModUtils)
                     {
                         ViewBag.Msg = "File size is too big!";
                         return View(modData);
                     }
 
-                    if(modData.ModId.Length > 32)
+                    if (modData.ModId.Length > 32)
                     {
                         ViewBag.Msg = "Mod ID can't be longer than 32 characters if using file upload method";
                         return View(modData);
                     }
 
-                    if(!modData.ModFile.FileName.EndsWith(".dll"))
+                    if (!modData.ModFile.FileName.EndsWith(".dll"))
                     {
                         ViewBag.Msg = "Not a DLL!";
                         return View(modData);
                     }
 
                     // Ilegal characters check
-                    if(!IsValidFilename(modData.ModId))
+                    if (!IsValidFilename(modData.ModId))
                     {
                         ViewBag.Msg = "Ilegal characters on mod ID - Use direct link instead";
                         return View(modData);
@@ -230,7 +232,7 @@ namespace MVC.Controllers
             if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
             {
                 Mod modObject = modsRepo.FindById(modId);
-                if(modObject != null && modObject.ModAuthor == u.Username)
+                if (modObject != null && modObject.ModAuthor == u.Username)
                 {
                     ModModel mm = new ModModel();
                     mm.ModId = modObject.ModId;
@@ -326,16 +328,19 @@ namespace MVC.Controllers
                         var path = Path.Combine(
                           Directory.GetCurrentDirectory(), "wwwroot/modfiles", (modData.ModId + ".dll"));
 
-                        if(System.IO.File.Exists(path))
+                        try
                         {
-                            System.IO.File.Delete(path);
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                await modData.ModFile.CopyToAsync(stream);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            ViewBag.Msg = "Something went wrong uploading the mod! Please re-upload it";
+                            return View();
                         }
 
-                        using (var stream = new FileStream(path, FileMode.Create))
-                        {
-                            await modData.ModFile.CopyToAsync(stream);
-                        }
-                        
                         modObject.DownloadLink = "https://mygaragemod.xyz/Mods/DownloadMod?mod=" + modData.ModId + ".dll";
                         modObject.Version = modData.ModVersion;
                         if (modsRepo.Update(modObject))
@@ -354,6 +359,266 @@ namespace MVC.Controllers
 
             ViewBag.Msg = "No permission!";
             return View(modData);
+        }
+
+        // Early access
+        [HttpGet]
+        public IActionResult EarlyAccess()
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            // User check
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                return View(modsRepo.FindByAuthor(u.Username));
+            }
+
+            return View(new List<Mod>());
+        }
+
+        // Early access manage
+
+        [HttpGet]
+        public IActionResult EarlyAccessMod(string modId)
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            // User check
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                Mod modObject = modsRepo.FindById(modId);
+                if (modObject != null && modObject.ModAuthor == u.Username)
+                {
+                    EarlyAccessModel mm = new EarlyAccessModel();
+                    mm.ModId = modObject.ModId;
+                    mm.IsEarlyAccess = modObject.EarlyAccessEnabled;
+
+                    ViewBag.CurrentStatus = mm.IsEarlyAccess ? "enabled" : "disabled";
+
+                    List<EarlyAccessAllowedModel> authors = new List<EarlyAccessAllowedModel>();
+                    foreach (EarlyAccessStatus author in earlyRepo.FindByModId(modObject.ModId))
+                    {
+                        authors.Add(new EarlyAccessAllowedModel() { Username = author.Username, Steam64 = author.Steam64 });
+                    }
+
+                    mm.Authors = authors;
+                    return View(mm);
+                }
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        // Enable disable mod
+        [HttpGet]
+        public IActionResult EnableDisableMod(string modId)
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            // User check
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                Mod modObject = modsRepo.FindById(modId);
+                if (modObject != null && modObject.ModAuthor == u.Username)
+                {
+                    modObject.EarlyAccessEnabled = !modObject.EarlyAccessEnabled;
+                    modsRepo.Update(modObject);
+                    return RedirectToAction("EarlyAccessMod", "Mods", new { modId = modId });
+                }
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        // Register new tester
+        [HttpGet]
+        public IActionResult AddEarlyAccess(string modId)
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            // User check
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                Mod modObject = modsRepo.FindById(modId);
+                if (modObject != null && modObject.ModAuthor == u.Username)
+                {
+                    RegisterEarlyAccessAllow reaa = new RegisterEarlyAccessAllow();
+                    reaa.ModId = modObject.ModId;
+                    return View(reaa);
+                }
+            }
+
+            return View();
+        }
+        [HttpPost]
+        public IActionResult AddEarlyAccess(RegisterEarlyAccessAllow modData)
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            if (string.IsNullOrEmpty(modData.Username))
+            {
+                ViewBag.Msg = "No alias was provided!";
+                return View(modData);
+            }
+
+            if (string.IsNullOrEmpty(modData.Steam64))
+            {
+                ViewBag.Msg = "No Steam64 was provided!";
+                return View(modData);
+            }
+
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                Mod modObject = modsRepo.FindById(modData.ModId);
+                if (modObject != null && modObject.ModAuthor == u.Username)
+                {
+                    bool alreadyExists = false;
+                    foreach (EarlyAccessStatus eas in earlyRepo.FindByModId(modObject.ModId))
+                    {
+                        if (eas.Steam64 == modData.Steam64 && eas.ModId == modObject.ModId)
+                        {
+                            alreadyExists = true;
+                            break;
+                        }
+                    }
+
+                    if (alreadyExists)
+                    {
+                        ViewBag.Msg = "This user is already registered for this mod!";
+                        return View(modData);
+                    }
+
+                    EarlyAccessStatus easObject = new EarlyAccessStatus();
+                    easObject.ModId = modObject.ModId;
+                    easObject.Username = modData.Username;
+                    easObject.Steam64 = modData.Steam64;
+
+                    if (earlyRepo.Add(easObject))
+                    {
+                        return RedirectToAction("EarlyAccessMod", "Mods", new { modId = modObject.ModId });
+                    }
+                    else
+                    {
+                        ViewBag.Msg = "Something went wrong :(";
+                        return View();
+                    }
+                }
+            }
+
+            ViewBag.Msg = "No permission!";
+            return View(modData);
+        }
+
+        // Remove tester
+        // Enable disable mod
+        [HttpGet]
+        public IActionResult RemoveEarlyAccess(string id, string modId)
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            // User check
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                Mod modObject = modsRepo.FindById(modId);
+                if (modObject != null && modObject.ModAuthor == u.Username)
+                {
+                    EarlyAccessStatus eas = null;
+                    foreach (EarlyAccessStatus easObject in earlyRepo.FindByModId(modObject.ModId))
+                    {
+                        if (easObject.Steam64 == id)
+                        {
+                            eas = easObject;
+                            break;
+                        }
+                    }
+
+                    if (eas != null)
+                    {
+                        if (earlyRepo.Delete(eas))
+                        {
+                            return RedirectToAction("EarlyAccessMod", "Mods", new { modId = modId });
+                        }
+                    }
+                }
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        // Copy tester list
+        [HttpGet]
+        public IActionResult CopyTestGroup(string modId)
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            // User check
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                Mod modObject = modsRepo.FindById(modId);
+                if (modObject != null && modObject.ModAuthor == u.Username)
+                {
+                    List<Mod> modList = modsRepo.FindByAuthor(u.Username);
+                    List<string> returnList = new List<string>();
+
+                    foreach (Mod m in modList)
+                    {
+                        if (m.EarlyAccessEnabled && m != modObject) // Ignore this mod
+                            returnList.Add(m.ModId);
+                    }
+
+                    ViewBag.originalId = modId;
+
+                    if (returnList.Count != 0)
+                        return View(returnList);
+                    else
+                        return RedirectToAction("EarlyAccessMod", "Mods", new { modId = modId });
+                }
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+        [HttpPost]
+        public IActionResult CopyTestGroup(string originalModId, string modToCopyFrom)
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            // User check
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                Mod modObject = modsRepo.FindById(originalModId);
+                Mod otherMod = modsRepo.FindById(modToCopyFrom);
+
+                if (modObject != null && modObject.ModAuthor == u.Username && otherMod != null && otherMod.ModAuthor == u.Username)
+                {
+                    earlyRepo.CopyTesters(modObject.ModId, otherMod.ModId);
+                    return RedirectToAction("EarlyAccessMod", "Mods", new { modId = originalModId });
+                }
+            }
+            return RedirectToAction("Index", "Home");
         }
 
         public bool CheckUserStatus()

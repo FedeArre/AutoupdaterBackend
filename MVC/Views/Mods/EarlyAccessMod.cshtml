@@ -1,0 +1,45 @@
+﻿@model EarlyAccessModel
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<p>Early access is @ViewBag.CurrentStatus for this mod</p>
+<br />
+@if(@ViewBag.CurrentStatus == "enabled")
+{
+    <a class="btn btn-danger" href="EnableDisableMod?modId=@Model.ModId" role="button">Disable mod</a>
+}
+else
+{
+    <a class="btn btn-warning" href="EnableDisableMod?modId=@Model.ModId" role="button">Enable mod</a>
+}
+
+<br />
+
+ <a class="btn btn-success" href="AddEarlyAccess?modId=@Model.ModId" role="button">Add tester to whitelist</a>
+ <a class="btn btn-secondary" href="CopyTestGroup?modId=@Model.ModId" role="button">Copy testers from other mod</a>
+ 
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Username</th>
+            <th scope="col">Steam64</th>
+            <th scope="col">Function</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Authors)
+        {
+            <tr>
+                <th scope="row">@item.Username</th>
+                <th scope="row">@item.Steam64</th>
+                <th scope="row">
+                    <a href="RemoveEarlyAccess?id=@item.Steam64&modId=@Model.ModId">Remove from whitelist</a>
+                </th>
+            </tr>
+        }
+    </tbody>
+</table>
+

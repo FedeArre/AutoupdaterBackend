@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Objects;
 using Objects.Repositories.Interfaces;
+using System.Collections.Generic;
 
 namespace MVC.Controllers
 {
@@ -69,6 +70,23 @@ namespace MVC.Controllers
 
             return RedirectToAction("ManageUsers", "Admin");
         }
+
+        [HttpGet]
+        public IActionResult WhoIsConnected()
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && u.Role == UserType.AutoupdaterDev)
+            {
+                List<string> connectedUsers = TelemetryHandler.GetInstance().GetAllIdentifiers();
+                return View(connectedUsers);
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
         public bool CheckUserStatus()
         {
             string currentToken = HttpContext.Session.GetString("userLoginToken");
@@ -83,7 +101,6 @@ namespace MVC.Controllers
                 HttpContext.Session.Remove("footerMessage");
                 return false;
             }
-
 
             return true;
         }

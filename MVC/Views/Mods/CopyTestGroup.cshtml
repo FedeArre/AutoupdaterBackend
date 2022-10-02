@@ -1,0 +1,19 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model IEnumerable<string>
+<form method="post">
+    <label for="modToCopyFrom">Mod to copy from: </label>
+    
+    <input type="hidden" value="@ViewBag.originalId" id="originalModId" />
+    <select name="modToCopyFrom">
+        @foreach(var item in Model)
+        {
+            <option>@item</option>
+        }
+    </select>
+
+    <input type="submit" value="Copy">
+</form>

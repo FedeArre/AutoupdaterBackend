@@ -1,0 +1,29 @@
+﻿@model RegisterEarlyAccessAllow
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+@if(Model == null)
+{
+    <p>Something went wrong!</p>
+}
+else
+{
+    <form method="post">
+        <p>Adding new tester to mod <b>@Model.ModId</b></p>
+        <br>
+        <input type="hidden" value="@Model.ModId" asp-for="ModId">
+
+        <label>Alias: </label>
+        @Html.TextBoxFor(m => m.Username)<br />
+        
+        <label>Steam64: </label>
+        @Html.TextBoxFor(m => m.Steam64)<br />
+
+        <input type="submit">
+    </form>
+}
+
+@ViewBag.Msg
