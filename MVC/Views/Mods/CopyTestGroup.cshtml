@@ -7,7 +7,7 @@
 <form method="post">
     <label for="modToCopyFrom">Mod to copy from: </label>
     
-    <input type="hidden" value="@ViewBag.originalId" id="originalModId" />
+    <input type="hidden" value="@ViewBag.originalId" name="originalModId" />
     <select name="modToCopyFrom">
         @foreach(var item in Model)
         {

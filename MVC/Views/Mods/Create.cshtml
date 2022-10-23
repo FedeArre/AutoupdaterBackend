@@ -45,16 +45,20 @@
                 <label for="modUploadDialog" class="form-label">Upload your mod: </label>
                 <input type="file" name="ModFile" id="modFileUpload">
            </div>
-
+            
             <br />
-
+            
             <label for="modFileName" class="form-label">File name: </label>
             @Html.TextBoxFor(m => m.ModFileName, new { @class = "form-control"})
 
             <br />
+            
+            @Html.CheckBoxFor(m => m.AutoupdatingDisabled)
+            <label for="disableAutoupdating" class="form-label">Disable autoupdating for the file</label>
+            
+            <br />
             <input type="submit" class="btn btn-primary"/>
             }
-
         </div>
     </div>
 </div>

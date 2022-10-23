@@ -50,7 +50,11 @@ namespace DataAccess
         {
             return db.Users.Where(user => user.Username == id).FirstOrDefault();
         }
-
+        public User FindByToken(string token)
+        {
+            return db.Users.Where(user => user.TokenAPI == token).FirstOrDefault();
+        }
+        
         public User Login(string username, string plainTextPassword)
         {
             User account = db.Users.Where(user => user.Username.ToLower() == username.ToLower()).FirstOrDefault();

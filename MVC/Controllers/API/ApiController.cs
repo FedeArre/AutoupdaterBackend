@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.HttpOverrides;
 using MVC.Models;
+using System.Linq;
 
 namespace MVC.Controllers.API
 {
@@ -16,11 +17,12 @@ namespace MVC.Controllers.API
     {
         private IModRepository modsRepo;
         private IEarlyAccessRepository earlyRepo;
-        
-        public ApiController(IModRepository modsRepo, IEarlyAccessRepository earlyRepo)
+        private IUserRepository userRepo;
+        public ApiController(IModRepository modsRepo, IEarlyAccessRepository earlyRepo,IUserRepository userRepo)
         {
             this.modsRepo = modsRepo;
             this.earlyRepo = earlyRepo;
+            this.userRepo = userRepo;
         }
 
         [HttpPost, Route("Mods")]
@@ -37,7 +39,7 @@ namespace MVC.Controllers.API
                     Mod mod = modsRepo.FindById(m.modId);
                     if(mod != null)
                     {
-                        if(mod.Version != m.version)
+                        if(mod.Version != m.version && !mod.DisableAutoupdating)
                         {
                             ModToSendDTO mts = new ModToSendDTO();
                             mts.mod_id = mod.ModId;
@@ -120,5 +122,51 @@ namespace MVC.Controllers.API
             return Ok(auto);
         }
 
+        [HttpGet, Route("playercount")]
+        public ActionResult<PlayerDataDTO> GetPlayerCount(string token, string modId)
+        {
+            if (String.IsNullOrWhiteSpace(token) || userRepo.FindByToken(token) == null)
+                return BadRequest("Invalid token");
+
+            if (String.IsNullOrWhiteSpace(modId))
+                return BadRequest("Invalid mod");
+            
+            Mod m = modsRepo.FindById(modId);
+            if (m == null)
+                return BadRequest("Invalid mod");
+            
+            PlayerDataDTO data = new PlayerDataDTO();
+            data.ModId = modId;
+            data.CurrentPlayers = TelemetryHandler.GetInstance().GetCurrentPlayerCount(modId);
+            if (TelemetryHandler.GetInstance().Peak24.ContainsKey(modId))
+                data.DailyPeak = TelemetryHandler.GetInstance().Peak24[modId];
+                    
+            data.HistoricPeak = m.Peak24 > m.PeakMax ? m.Peak24 : m.PeakMax;
+            return Ok(data);
+        }
+
+        [HttpGet, Route("allmods")]
+        public ActionResult<AllModsDTO> GetAllMods(string token)
+        {
+            if (String.IsNullOrWhiteSpace(token) || userRepo.FindByToken(token) == null)
+                return BadRequest("Invalid token");
+
+            List<Mod> mods = modsRepo.FindAll().ToList();
+            AllModsDTO allMods = new AllModsDTO();
+            allMods.Mods = new List<ModAuthorPair>();
+            foreach (Mod m in mods)
+            {
+                if (m.DisableAutoupdating)
+                    continue;
+                
+                ModAuthorPair map = new ModAuthorPair();
+                map.ModAuthor = m.ModAuthor;
+                map.ModId = m.ModId;
+
+                allMods.Mods.Add(map);
+            }
+            
+            return Ok(allMods);
+        }
     }
 }

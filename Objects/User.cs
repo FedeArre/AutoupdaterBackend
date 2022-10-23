@@ -11,6 +11,7 @@ namespace Objects
         public string Username { get; set; }
         public string Password { get; set; }
         public UserType Role { get; set; }
+        public string TokenAPI { get; set; }
     }
 
     public enum UserType

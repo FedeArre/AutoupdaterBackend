@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MVC.DiscordBot;
 using MVC.Models;
 using Objects;
 using Objects.Repositories.Interfaces;
@@ -64,7 +65,7 @@ namespace MVC.Controllers
                 return View(modData);
             }
 
-            if (string.IsNullOrEmpty(modData.ModDownloadLink) && modData.ModFile == null)
+            if (string.IsNullOrEmpty(modData.ModDownloadLink) && modData.ModFile == null && !modData.AutoupdatingDisabled)
             {
                 ViewBag.Msg = "No mod download link / file was provided!";
                 return View(modData);
@@ -83,18 +84,22 @@ namespace MVC.Controllers
             }
 
             // Direct download link provided
-            if (modData.ModFile == null)
+            if (modData.ModFile == null || modData.AutoupdatingDisabled)
             {
-                Uri uriResult;
-                bool result = Uri.TryCreate(modData.ModDownloadLink, UriKind.Absolute, out uriResult)
-                    && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
-
-                if (!result)
+                if (!modData.AutoupdatingDisabled)
                 {
-                    ViewBag.Msg = "The download link is invalid!";
-                    return View(modData);
-                }
+                    Uri uriResult;
+                    bool result = Uri.TryCreate(modData.ModDownloadLink, UriKind.Absolute, out uriResult)
+                        && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
 
+                    if (!result)
+                    {
+                        ViewBag.Msg = "The download link is invalid!";
+                        return View(modData);
+                    }
+
+                }
+                
                 string token = HttpContext.Session.GetString("userLoginToken");
                 User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
                 if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
@@ -106,10 +111,13 @@ namespace MVC.Controllers
                     createdMod.DownloadLink = modData.ModDownloadLink;
                     createdMod.FileName = modData.ModFileName;
                     createdMod.ModAuthor = u.Username;
-
+                    createdMod.DisableAutoupdating = modData.AutoupdatingDisabled;
+                    
                     if (modsRepo.Add(createdMod))
                     {
-                        ModelState.Clear();
+                        ModelState.Clear(); 
+                        BotHandler.GetInstance().SendDiscordMessage($"{u.Username} created mod {createdMod.Name}");
+
                         ViewBag.Msg = "Mod created succesfully!";
                     }
                     else
@@ -128,7 +136,7 @@ namespace MVC.Controllers
                 User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
                 if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
                 {
-                    if (modData.ModFile.Length > 10485761 && modData.ModId != "ModUtils") // 10MB size check (but allowing ModUtils)
+                    if (modData.ModFile.Length > 10485761 && modData.ModId != "ModUtils") // 10MB size check (but allowing ModUtils (useless btw since too big))
                     {
                         ViewBag.Msg = "File size is too big!";
                         return View(modData);
@@ -172,6 +180,8 @@ namespace MVC.Controllers
                     if (modsRepo.Add(createdMod))
                     {
                         ModelState.Clear();
+                        BotHandler.GetInstance().SendDiscordMessage($"{u.Username} created mod {createdMod.Name}");
+                        
                         ViewBag.Msg = "Mod created succesfully!";
                     }
                     else
@@ -209,14 +219,32 @@ namespace MVC.Controllers
                 return RedirectToAction("Index", "Home");
 
             // User check
+            MyModsModel mmm = new MyModsModel();
+            
             string token = HttpContext.Session.GetString("userLoginToken");
             User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
             if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
             {
-                return View(modsRepo.FindByAuthor(u.Username));
+                mmm.ModList = modsRepo.FindByAuthor(u.Username);
+                mmm.PlayerCount = TelemetryHandler.GetInstance().GetCurrentPlayerCount("ModUtils");
+                
+                foreach(Mod m in mmm.ModList)
+                {
+                    if (m.DisableAutoupdating)
+                        m.Name += " (!)";
+
+                    if (!TelemetryHandler.GetInstance().Peak24.ContainsKey(m.ModId))
+                        continue;
+                    
+                    m.Peak24 = TelemetryHandler.GetInstance().Peak24[m.ModId];
+                    if (m.Peak24 > m.PeakMax)
+                        m.PeakMax = m.Peak24;
+                }
+
+                return View(mmm);
             }
 
-            return View(new List<Mod>());
+            return View(mmm);
         }
 
         // Upload new version
@@ -244,29 +272,57 @@ namespace MVC.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult DeleteMod(string modId)
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            // User check
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                Mod modObject = modsRepo.FindById(modId);
+                if (modObject != null && modObject.ModAuthor == u.Username)
+                {
+                    earlyRepo.DeleteAllTesters(modId);
+                    modsRepo.Delete(modObject);
+
+                    BotHandler.GetInstance().SendDiscordMessage($"{u.Username} has deleted mod {modObject.Name}");
+                    return RedirectToAction("MyMods", "Mods");
+                }
+            }
+
+            return View();
+        }
+        
         [HttpPost]
         public async Task<IActionResult> NewVersion(ModModel modData)
         {
             if (!CheckUserStatus())
                 return RedirectToAction("Index", "Home");
 
-            if (string.IsNullOrEmpty(modData.ModDownloadLink) && modData.ModFile == null)
+            if (string.IsNullOrEmpty(modData.ModDownloadLink) && modData.ModFile == null && !modData.AutoupdatingDisabled)
             {
                 ViewBag.Msg = "No mod download link / file was provided!";
                 return View(modData);
             }
 
             // Direct download link provided
-            if (modData.ModFile == null)
+            if (modData.ModFile == null || modData.AutoupdatingDisabled)
             {
-                Uri uriResult;
-                bool result = Uri.TryCreate(modData.ModDownloadLink, UriKind.Absolute, out uriResult)
-                    && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
-
-                if (!result)
+                if(!modData.AutoupdatingDisabled)
                 {
-                    ViewBag.Msg = "The download link is invalid!";
-                    return View(modData);
+                    Uri uriResult;
+                    bool result = Uri.TryCreate(modData.ModDownloadLink, UriKind.Absolute, out uriResult)
+                        && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+
+                    if (!result)
+                    {
+                        ViewBag.Msg = "The download link is invalid!";
+                        return View(modData);
+                    }
                 }
 
                 // User check
@@ -279,8 +335,12 @@ namespace MVC.Controllers
                     {
                         modObject.DownloadLink = modData.ModDownloadLink;
                         modObject.Version = modData.ModVersion;
+                        modObject.DisableAutoupdating = modData.AutoupdatingDisabled;
+                        
                         if (modsRepo.Update(modObject))
                         {
+                            BotHandler.GetInstance().SendDiscordMessage($"{u.Username} updated mod {modObject.Name} to {modObject.Version}");
+
                             return RedirectToAction("MyMods", "Mods");
                         }
                         else
@@ -345,6 +405,7 @@ namespace MVC.Controllers
                         modObject.Version = modData.ModVersion;
                         if (modsRepo.Update(modObject))
                         {
+                            BotHandler.GetInstance().SendDiscordMessage($"{u.Username} updated mod {modObject.Name} to {modObject.Version}");
                             return RedirectToAction("MyMods", "Mods");
                         }
                         else

@@ -2,14 +2,16 @@
 using DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(AutoupdaterContext))]
-    partial class AutoupdaterContextModelSnapshot : ModelSnapshot
+    [Migration("20221015230216_autoupdateDisabler")]
+    partial class autoupdateDisabler
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,9 +84,6 @@ namespace DataAccess.Migrations
 
                     b.Property<int>("Role")
                         .HasColumnType("int");
-
-                    b.Property<string>("TokenAPI")
-                        .HasColumnType("text");
 
                     b.HasKey("Username");
 

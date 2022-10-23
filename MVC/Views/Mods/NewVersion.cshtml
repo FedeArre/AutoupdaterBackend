@@ -39,6 +39,12 @@ else
             <input type="file" name="ModFile" id="modFileUpload">
         </div>
 
+        <br>
+        
+        @Html.CheckBoxFor(m => m.AutoupdatingDisabled)
+        Disable autoupdating?
+        <br>
+        
         <input type="submit">
     </form>
 }

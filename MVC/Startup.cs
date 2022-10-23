@@ -47,12 +47,10 @@ namespace MVC
             {
                 options.HttpsPort = 5001;
             });
-
-            TelemetryHandler.GetInstance();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IModRepository mods)
         {
             if (env.IsDevelopment())
             {
@@ -90,6 +88,9 @@ namespace MVC
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
                 var context = serviceScope.ServiceProvider.GetRequiredService<AutoupdaterContext>();
+
+                TelemetryHandler.GetInstance().Services = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
+                BotHandler.GetInstance().Services = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
                 context.Database.Migrate();
             }
 

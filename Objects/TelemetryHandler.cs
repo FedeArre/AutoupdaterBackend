@@ -1,4 +1,5 @@
-﻿using Objects;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Objects;
 using Objects.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,8 @@ namespace Objects
         // Singleton
         private static TelemetryHandler Instance;
         private Timer timer;
+        public IServiceScope Services;
+        
         private TelemetryHandler()
         {
             ModData = new Dictionary<string, Telemetry>();
@@ -33,6 +36,7 @@ namespace Objects
         }
         
         private Dictionary<string, Telemetry> ModData = new Dictionary<string, Telemetry>();
+        public Dictionary<string, int> Peak24 = new Dictionary<string, int>();
         
         public bool Add(Telemetry entity)
         {
@@ -45,16 +49,26 @@ namespace Objects
             return true;
         }
         
-        public int GetCurrentPlayerCount(string modId)
+        public int GetCurrentPlayerCount(string modId, bool repeating = false)
         {
             int playerCount = 0;
 
-            foreach (KeyValuePair<string, Telemetry> entry in ModData)
+            try
             {
-                if (entry.Value.UsingMods.Contains(modId))
-                    playerCount++;
-            }
+                foreach (KeyValuePair<string, Telemetry> entry in ModData)
+                {
+                    if (entry.Value.UsingMods.Contains(modId))
+                        playerCount++;
+                }
 
+            }
+            catch (Exception ex)
+            {
+                // Second try
+                if(!repeating)
+                    playerCount = GetCurrentPlayerCount(modId, true);
+            }
+            
             return playerCount;
         }
 
@@ -74,6 +88,26 @@ namespace Objects
             foreach(string s in keysToRemove)
             {
                 ModData.Remove(s);
+            }
+
+            if(Services == null)
+                return;
+            
+            IEnumerable<Mod> allMods = Services.ServiceProvider.GetRequiredService<IModRepository>().FindAll().ToList();
+            foreach (Mod m in allMods)
+            {
+                if(!Peak24.ContainsKey(m.ModId))
+                {
+                    Peak24.Add(m.ModId, GetCurrentPlayerCount(m.ModId));
+                }
+                else
+                {
+                    int modCPC = GetCurrentPlayerCount(m.ModId);
+                    if (modCPC > Peak24[m.ModId])
+                    {
+                        Peak24[m.ModId] = modCPC;
+                    }
+                }
             }
         }
 

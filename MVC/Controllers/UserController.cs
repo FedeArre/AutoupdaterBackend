@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MVC.DiscordBot;
 using Objects;
 using Objects.Repositories.Interfaces;
 
@@ -59,7 +60,7 @@ namespace MVC.Controllers
                 HttpContext.Session.SetString("userLoginToken", token);
                 HttpContext.Session.SetInt32("userRoleId", 0);
                 HttpContext.Session.SetString("footerMessage", $"Currently logged as " + newUser.Username);
-
+                BotHandler.GetInstance().SendDiscordMessage($"New user registered on developer page: {newUser.Username}");
                 return RedirectToAction("Index", "Home");
             }
             else

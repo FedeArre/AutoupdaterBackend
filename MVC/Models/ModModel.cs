@@ -11,5 +11,6 @@ namespace MVC.Models
         public string ModFileName { get; set; }
         public string ModDownloadLink { get; set; }
         public IFormFile ModFile { get; set; }
+        public bool AutoupdatingDisabled { get; set; }
     }
 }

@@ -8,5 +8,7 @@ namespace Objects.Repositories.Interfaces
     {
         List<EarlyAccessStatus> FindByModId(string modId);
         void CopyTesters(string goesToMod, string copyFromMod);
+
+        void DeleteAllTesters(string modId);
     }
 }
