@@ -233,12 +233,12 @@ namespace MVC.Controllers
                     if (m.DisableAutoupdating)
                         m.Name += " (!)";
 
-                    if (!TelemetryHandler.GetInstance().Peak24.ContainsKey(m.ModId))
+                    /*if (!TelemetryHandler.GetInstance().Peak24.ContainsKey(m.ModId))
                         continue;
                     
                     m.Peak24 = TelemetryHandler.GetInstance().Peak24[m.ModId];
                     if (m.Peak24 > m.PeakMax)
-                        m.PeakMax = m.Peak24;
+                        m.PeakMax = m.Peak24;*/
                 }
 
                 return View(mmm);

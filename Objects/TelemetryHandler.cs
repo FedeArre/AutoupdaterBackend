@@ -36,7 +36,7 @@ namespace Objects
         }
         
         private Dictionary<string, Telemetry> ModData = new Dictionary<string, Telemetry>();
-        public Dictionary<string, int> Peak24 = new Dictionary<string, int>();
+        //public Dictionary<string, int> Peak24 = new Dictionary<string, int>();
         
         public bool Add(Telemetry entity)
         {
@@ -93,7 +93,7 @@ namespace Objects
             if(Services == null)
                 return;
             
-            IEnumerable<Mod> allMods = Services.ServiceProvider.GetRequiredService<IModRepository>().FindAll().ToList();
+            /*IEnumerable<Mod> allMods = Services.ServiceProvider.GetRequiredService<IModRepository>().FindAll().ToList();
             foreach (Mod m in allMods)
             {
                 if(!Peak24.ContainsKey(m.ModId))
@@ -108,7 +108,7 @@ namespace Objects
                         Peak24[m.ModId] = modCPC;
                     }
                 }
-            }
+            }*/
         }
 
         public List<string> GetAllIdentifiers()

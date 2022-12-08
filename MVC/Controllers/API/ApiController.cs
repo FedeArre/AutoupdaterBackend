@@ -89,8 +89,7 @@ namespace MVC.Controllers.API
 
         [HttpPost, Route("eacheck")]
         public ActionResult<bool> EarlyAccess(EarlyAccessJson eaj)
-        {
-            
+        {            
             if (eaj == null || eaj.ModId == null || eaj.SteamId == null)
                 return BadRequest();
 
@@ -138,10 +137,10 @@ namespace MVC.Controllers.API
             PlayerDataDTO data = new PlayerDataDTO();
             data.ModId = modId;
             data.CurrentPlayers = TelemetryHandler.GetInstance().GetCurrentPlayerCount(modId);
-            if (TelemetryHandler.GetInstance().Peak24.ContainsKey(modId))
+            /*if (TelemetryHandler.GetInstance().Peak24.ContainsKey(modId))
                 data.DailyPeak = TelemetryHandler.GetInstance().Peak24[modId];
                     
-            data.HistoricPeak = m.Peak24 > m.PeakMax ? m.Peak24 : m.PeakMax;
+            data.HistoricPeak = m.Peak24 > m.PeakMax ? m.Peak24 : m.PeakMax;*/
             return Ok(data);
         }
 
@@ -167,6 +166,41 @@ namespace MVC.Controllers.API
             }
             
             return Ok(allMods);
+        }
+
+        [HttpGet, Route("eapatreon")]
+        public ActionResult<bool> EAPatreon(PatreonEAModel model)
+        {
+            User u = userRepo.FindByToken(model.Token);
+            if (String.IsNullOrWhiteSpace(model.Token) || u == null)
+                return BadRequest("Invalid token");
+
+            Mod m = modsRepo.FindById(model.DummyModId);
+            if (m == null || !m.EarlyAccessEnabled)
+            {
+                return Ok(false);
+            }
+
+            foreach (var ea in earlyRepo.FindByModId(model.DummyModId))
+            {
+                if (ea.Username == model.DiscordIdentifier)
+                {
+                    ea.Steam64 = model.NewSteamId;
+                    earlyRepo.Update(ea);
+
+                    List<string> mods = new List<string>();
+                    foreach(Mod mod in modsRepo.FindByAuthor(u.Username))
+                    {
+                        if (mod.ModId != model.DummyModId)
+                            mods.Add(mod.ModId);
+                    }
+
+                    earlyRepo.CopyTestersToAll(mods, model.DummyModId);
+                    break;
+                }
+            }
+            
+            return Ok(false);
         }
     }
 }

@@ -80,7 +80,24 @@ namespace DataAccess
 
         public bool Update(EarlyAccessStatus entity)
         {
-            throw new NotImplementedException();
+            try
+            {
+                db.EarlyAccess.Update(entity);
+                db.SaveChanges();
+                return true;
+            }
+            catch(Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public void CopyTestersToAll(List<string> mods, string modId)
+        {
+            foreach(string s in mods)
+            {
+                CopyTesters(s, modId);
+            }
         }
     }
 }

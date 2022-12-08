@@ -10,5 +10,6 @@ namespace Objects.Repositories.Interfaces
         void CopyTesters(string goesToMod, string copyFromMod);
 
         void DeleteAllTesters(string modId);
+        void CopyTestersToAll(List<string> mods, string modId);
     }
 }

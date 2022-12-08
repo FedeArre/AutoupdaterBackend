@@ -17,10 +17,8 @@ namespace MVC.DiscordBot
         public IConfiguration Configuration;
         public IServiceScope Services;
         
-        private Timer _timer;
-        private Timer _timer24;
-        
         private DiscordSocketClient _client;
+        
         public async Task MainAsync()
         {
             string token = Configuration["Token"];
@@ -37,51 +35,6 @@ namespace MVC.DiscordBot
         private async Task OnBotLogin()
         {
             SendDiscordMessage("Bot logged in");
-            
-            var startTimeSpan = TimeSpan.Zero;
-            var period24TimeSpan = TimeSpan.FromHours(24);
-            
-            if(_timer24 == null)
-            {
-                _timer24 = new Timer((e) =>
-                {
-                    Task.Run(CheckRecords);
-                }, null, startTimeSpan, period24TimeSpan);
-            }
-        }
-        
-        public async Task CheckRecords()
-        {
-            Dictionary<string, int> records = new Dictionary<string, int>();
-
-            IModRepository repo = Services.ServiceProvider.GetRequiredService<IModRepository>();
-            IEnumerable<Mod> allMods = repo.FindAll();
-            foreach (Mod m in allMods)
-            {
-                if (!TelemetryHandler.GetInstance().Peak24.ContainsKey(m.ModId))
-                    continue;
-
-                int record = TelemetryHandler.GetInstance().Peak24[m.ModId];
-                if (record > m.PeakMax)
-                {
-                    records.Add(m.ModId, record);
-                    m.PeakMax = record;
-                    repo.Update(m);
-                }
-            }
-
-            if(records.Count > 0)
-            {
-                string s = "New player count record on the following mods:";
-                foreach (KeyValuePair<string, int> kvp in records)
-                {
-                    s += $"\n{kvp.Key} - {kvp.Value} players";
-                }
-                
-                _client.GetGuild(873306861594640384).GetTextChannel(1030967349127413770).SendMessageAsync(s);
-            }
-
-            TelemetryHandler.GetInstance().Peak24.Clear();
         }
         
         public void SendDiscordMessage(string msg)
