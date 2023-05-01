@@ -1,0 +1,84 @@
+﻿@model ModModel
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+
+
+<div class="container">
+    <div class="row">
+        <div class="col-5">
+            <h2>Create new mod</h2>
+
+            @using (Html.BeginForm("Create", "Mods", FormMethod.Post, new { enctype="multipart/form-data"}))
+            {
+                <label for="modId" class="form-label">Mod ID: </label>
+                @Html.TextBoxFor(m => m.ModId, new { @class = "form-control"})
+
+            <br />
+
+            <label for="modName" class="form-label">Mod name: </label>
+            @Html.TextBoxFor(m => m.ModName, new { @class = "form-control"})
+
+            <br />
+
+            <label for="modVersion" class="form-label">Mod version: </label>
+            @Html.TextBoxFor(m => m.ModVersion, new { @class = "form-control" })
+
+            <br />
+
+            <label for="loadingType">File upload method:</label><br />
+            <input type="radio" name="uploadMethod" id="uploadMethodLink" value="link" onchange="updateDivs()" checked/>
+            <label for="uploadMethod">Direct download link</label><br />
+            <input type="radio" name="uploadMethod" id="uploadMethodFile" value="file" onchange="updateDivs()"/>
+            <label for="uploadMethod">Upload file to server (10MB max. size)</label><br />
+
+            
+            <div id="uploadLinkDiv">
+                <label for="modDownloadLink" class="form-label">Download link: </label>
+                @Html.TextBoxFor(m => m.ModDownloadLink, new { @class = "form-control"})
+           </div>
+
+            <div id="uploadFileDiv" style="display:none">
+                <label for="modUploadDialog" class="form-label">Upload your mod: </label>
+                <input type="file" name="ModFile" id="modFileUpload">
+           </div>
+            
+            <br />
+            
+            <label for="modFileName" class="form-label">File name: </label>
+            @Html.TextBoxFor(m => m.ModFileName, new { @class = "form-control"})
+
+            <br />
+            
+            @Html.CheckBoxFor(m => m.AutoupdatingDisabled)
+            <label for="disableAutoupdating" class="form-label">Disable autoupdating for the file</label>
+            
+            <br />
+            <input type="submit" class="btn btn-primary"/>
+            }
+        </div>
+    </div>
+</div>
+@ViewBag.Msg
+
+<script>
+    function updateDivs()
+    {
+        document.querySelector("#modFileUpload").value = null;
+        document.querySelector("#ModDownloadLink").value = null;
+        let uploadMethodFile = document.querySelector("#uploadMethodFile").checked;
+        if(uploadMethodFile)
+        {
+            document.querySelector("#uploadFileDiv").style.display = "block";
+            document.querySelector("#uploadLinkDiv").style.display = "none";
+        }
+        else
+        {
+            document.querySelector("#uploadFileDiv").style.display = "none";
+            document.querySelector("#uploadLinkDiv").style.display = "block";
+        }
+    }
+</script>
