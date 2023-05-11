@@ -111,7 +111,7 @@ namespace MVC.Controllers
                     createdMod.DownloadLink = modData.ModDownloadLink;
                     createdMod.FileName = modData.ModFileName;
                     createdMod.ModAuthor = u.Username;
-                    createdMod.DisableAutoupdating = modData.AutoupdatingDisabled;
+                    //createdMod.DisableAutoupdating = modData.AutoupdatingDisabled;
                     
                     if (modsRepo.Add(createdMod))
                     {
@@ -230,9 +230,6 @@ namespace MVC.Controllers
                 
                 foreach(Mod m in mmm.ModList)
                 {
-                    if (m.DisableAutoupdating)
-                        m.Name += " (!)";
-
                     /*if (!TelemetryHandler.GetInstance().Peak24.ContainsKey(m.ModId))
                         continue;
                     

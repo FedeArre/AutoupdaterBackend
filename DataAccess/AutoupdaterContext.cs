@@ -25,6 +25,8 @@ namespace DataAccess
         {
             modelBuilder.Ignore<Telemetry>();
             modelBuilder.Ignore<TelemetryHandler>();
+            modelBuilder.Ignore<EarlyAccessGroup>();
+            modelBuilder.Ignore<EarlyAccessStatus>();
         }
     }
 }

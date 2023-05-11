@@ -17,7 +17,7 @@ namespace Objects
         public int CPC { get; set; } // Current player count
         public int PeakMax { get; set; }
         public bool EarlyAccessEnabled { get; set; }
-        public bool DisableAutoupdating { get; set; }
+        public ModVersion LatestVersion { get; set; }
         public int Peak24;
     }
 }

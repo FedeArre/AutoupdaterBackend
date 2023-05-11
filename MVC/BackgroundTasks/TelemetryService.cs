@@ -1,5 +1,6 @@
 ﻿using DataAccess;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Objects;
 using Objects.Repositories.Interfaces;
@@ -20,10 +21,10 @@ namespace MVC.BackgroundTasks
         public AutoupdaterContext _context;
         public IModRepository _modsRepo;
 
-        public TelemetryService(AutoupdaterContext context, IModRepository modsRepo)
+        public TelemetryService(IServiceScopeFactory factory)
         {
-            _context = context;
-            _modsRepo = modsRepo;
+            _context = factory.CreateScope().ServiceProvider.GetRequiredService<AutoupdaterContext>();
+            _modsRepo = factory.CreateScope().ServiceProvider.GetRequiredService<IModRepository>();
         }
 
         public Task StartAsync(CancellationToken cancellationToken)

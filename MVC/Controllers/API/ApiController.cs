@@ -39,7 +39,7 @@ namespace MVC.Controllers.API
                     Mod mod = modsRepo.FindById(m.modId);
                     if(mod != null)
                     {
-                        if(mod.Version != m.version && !mod.DisableAutoupdating)
+                        if(mod.Version != m.version /*&& /*!mod.DisableAutoupdating*/)
                         {
                             ModToSendDTO mts = new ModToSendDTO();
                             mts.mod_id = mod.ModId;
