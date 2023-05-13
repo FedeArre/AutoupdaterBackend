@@ -1,4 +1,5 @@
-﻿using Objects;
+﻿using Newtonsoft.Json.Linq;
+using Objects;
 using Objects.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -44,6 +45,11 @@ namespace DataAccess
         public IEnumerable<User> FindAll()
         {
             return db.Users.ToList();
+        }
+
+        public User FindByDiscordToken(string discordToken)
+        {
+            return db.Users.Where(user => user.DiscordVerificationToken == discordToken).FirstOrDefault();
         }
 
         public User FindById(string id)

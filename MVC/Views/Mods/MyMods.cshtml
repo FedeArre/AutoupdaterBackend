@@ -11,7 +11,6 @@
 }
 else
 {
-    <p>Current players (total): @Model.PlayerCount</p>
     <table class="table table-hover">
         <thead>
             <tr>
@@ -27,13 +26,9 @@ else
                 <tr>
                     <th scope="row">@item.ModId</th>
                     <th scope="row">@item.Name</th>
-                    <th scope="row">@item.Version</th>
                     <th scope="row">@item.CPC</th>
-                    <th scope="row">@item.Peak24</th>
-                    <th scope="row">@item.PeakMax</th>
                     <th scope="row">
-                        <a href="NewVersion?modId=@item.ModId">Update</a> | 
-                        <a href="DeleteMod?modId=@item.ModId">Delete</a>
+                        <a href="ModDetails?modId=@item.ModId">Details</a>
                     </th>
                 </tr>
             }

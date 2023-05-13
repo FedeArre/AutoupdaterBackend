@@ -12,6 +12,8 @@ namespace Objects
         public string Password { get; set; }
         public UserType Role { get; set; }
         public string TokenAPI { get; set; }
+        public string DiscordVerificationToken { get; set; }
+        public string DiscordId { get; set; }
     }
 
     public enum UserType

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MVC.DiscordBot;
 using MVC.Models;
 using Objects;
 using Objects.Repositories.Interfaces;
@@ -36,7 +35,7 @@ namespace MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(ModModel modData)
+        public IActionResult Create(ModModel modData)
         {
             if (!CheckUserStatus())
                 return RedirectToAction("Index", "Home");
@@ -53,24 +52,6 @@ namespace MVC.Controllers
                 return View(modData);
             }
 
-            if (string.IsNullOrEmpty(modData.ModVersion))
-            {
-                ViewBag.Msg = "Mod version can't be empty!";
-                return View(modData);
-            }
-
-            if (string.IsNullOrEmpty(modData.ModFileName))
-            {
-                ViewBag.Msg = "File name can't be empty!";
-                return View(modData);
-            }
-
-            if (string.IsNullOrEmpty(modData.ModDownloadLink) && modData.ModFile == null && !modData.AutoupdatingDisabled)
-            {
-                ViewBag.Msg = "No mod download link / file was provided!";
-                return View(modData);
-            }
-
             Mod existingMod = modsRepo.FindById(modData.ModId);
             if (existingMod != null)
             {
@@ -78,121 +59,30 @@ namespace MVC.Controllers
                 return View(modData);
             }
 
-            if (!modData.ModFileName.EndsWith(".dll"))
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
             {
-                modData.ModFileName += ".dll";
-            }
+                Mod createdMod = new Mod();
+                createdMod.ModId = modData.ModId;
+                createdMod.Name = modData.ModName;
+                createdMod.ModAuthor = u.Username;
 
-            // Direct download link provided
-            if (modData.ModFile == null || modData.AutoupdatingDisabled)
-            {
-                if (!modData.AutoupdatingDisabled)
+                if (modsRepo.Add(createdMod))
                 {
-                    Uri uriResult;
-                    bool result = Uri.TryCreate(modData.ModDownloadLink, UriKind.Absolute, out uriResult)
-                        && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+                    ModelState.Clear();
 
-                    if (!result)
-                    {
-                        ViewBag.Msg = "The download link is invalid!";
-                        return View(modData);
-                    }
-
+                    ViewBag.Msg = "Mod created succesfully!";
                 }
-                
-                string token = HttpContext.Session.GetString("userLoginToken");
-                User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
-                if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+                else
                 {
-                    Mod createdMod = new Mod();
-                    createdMod.ModId = modData.ModId;
-                    createdMod.Name = modData.ModName;
-                    createdMod.Version = modData.ModVersion;
-                    createdMod.DownloadLink = modData.ModDownloadLink;
-                    createdMod.FileName = modData.ModFileName;
-                    createdMod.ModAuthor = u.Username;
-                    //createdMod.DisableAutoupdating = modData.AutoupdatingDisabled;
-                    
-                    if (modsRepo.Add(createdMod))
-                    {
-                        ModelState.Clear(); 
-                        BotHandler.GetInstance().SendDiscordMessage($"{u.Username} created mod {createdMod.Name}");
-
-                        ViewBag.Msg = "Mod created succesfully!";
-                    }
-                    else
-                    {
-                        ViewBag.Msg = "Something went wrong while saving the mod. Try again!";
-                    }
-
-                    return View();
+                    ViewBag.Msg = "Something went wrong while saving the mod. Try again!";
                 }
 
-                ViewBag.Msg = "Something went wrong :(";
+                return View();
             }
-            else // File check
-            {
-                string token = HttpContext.Session.GetString("userLoginToken");
-                User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
-                if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
-                {
-                    if (modData.ModFile.Length > 10485761 && modData.ModId != "ModUtils") // 10MB size check (but allowing ModUtils (useless btw since too big))
-                    {
-                        ViewBag.Msg = "File size is too big!";
-                        return View(modData);
-                    }
 
-                    if (modData.ModId.Length > 32)
-                    {
-                        ViewBag.Msg = "Mod ID can't be longer than 32 characters if using file upload method";
-                        return View(modData);
-                    }
-
-                    if (!modData.ModFile.FileName.EndsWith(".dll"))
-                    {
-                        ViewBag.Msg = "Not a DLL!";
-                        return View(modData);
-                    }
-
-                    // Ilegal characters check
-                    if (!IsValidFilename(modData.ModId))
-                    {
-                        ViewBag.Msg = "Ilegal characters on mod ID - Use direct link instead";
-                        return View(modData);
-                    }
-
-                    var path = Path.Combine(
-                      Directory.GetCurrentDirectory(), "wwwroot/modfiles", (modData.ModId + ".dll"));
-
-                    using (var stream = new FileStream(path, FileMode.Create))
-                    {
-                        await modData.ModFile.CopyToAsync(stream);
-                    }
-
-                    Mod createdMod = new Mod();
-                    createdMod.ModId = modData.ModId;
-                    createdMod.Name = modData.ModName;
-                    createdMod.Version = modData.ModVersion;
-                    createdMod.DownloadLink = "https://mygaragemod.xyz/Mods/DownloadMod?mod=" + modData.ModId + ".dll";
-                    createdMod.FileName = modData.ModFileName;
-                    createdMod.ModAuthor = u.Username;
-
-                    if (modsRepo.Add(createdMod))
-                    {
-                        ModelState.Clear();
-                        BotHandler.GetInstance().SendDiscordMessage($"{u.Username} created mod {createdMod.Name}");
-                        
-                        ViewBag.Msg = "Mod created succesfully!";
-                    }
-                    else
-                    {
-                        ViewBag.Msg = "Something went wrong while saving the mod. Try again!";
-                    }
-
-                    return View();
-                }
-                ViewBag.Msg = "Something went wrong :(";
-            }
+            ViewBag.Msg = "Something went wrong :(";
             return View(modData);
         }
 
@@ -226,17 +116,6 @@ namespace MVC.Controllers
             if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
             {
                 mmm.ModList = modsRepo.FindByAuthor(u.Username);
-                mmm.PlayerCount = TelemetryHandler.GetInstance().GetCurrentPlayerCount("ModUtils");
-                
-                foreach(Mod m in mmm.ModList)
-                {
-                    /*if (!TelemetryHandler.GetInstance().Peak24.ContainsKey(m.ModId))
-                        continue;
-                    
-                    m.Peak24 = TelemetryHandler.GetInstance().Peak24[m.ModId];
-                    if (m.Peak24 > m.PeakMax)
-                        m.PeakMax = m.Peak24;*/
-                }
 
                 return View(mmm);
             }
@@ -300,7 +179,7 @@ namespace MVC.Controllers
             if (!CheckUserStatus())
                 return RedirectToAction("Index", "Home");
 
-            if (string.IsNullOrEmpty(modData.ModDownloadLink) && modData.ModFile == null && !modData.AutoupdatingDisabled)
+            /*if (string.IsNullOrEmpty(modData.ModDownloadLink) && modData.ModFile == null && !modData.AutoupdatingDisabled)
             {
                 ViewBag.Msg = "No mod download link / file was provided!";
                 return View(modData);
@@ -336,8 +215,6 @@ namespace MVC.Controllers
                         
                         if (modsRepo.Update(modObject))
                         {
-                            BotHandler.GetInstance().SendDiscordMessage($"{u.Username} updated mod {modObject.Name} to {modObject.Version}");
-
                             return RedirectToAction("MyMods", "Mods");
                         }
                         else
@@ -399,10 +276,9 @@ namespace MVC.Controllers
                         }
 
                         modObject.DownloadLink = "https://mygaragemod.xyz/Mods/DownloadMod?mod=" + modData.ModId + ".dll";
-                        modObject.Version = modData.ModVersion;
+                        //modObject.Version = modData.ModVersion;
                         if (modsRepo.Update(modObject))
                         {
-                            BotHandler.GetInstance().SendDiscordMessage($"{u.Username} updated mod {modObject.Name} to {modObject.Version}");
                             return RedirectToAction("MyMods", "Mods");
                         }
                         else
@@ -414,7 +290,7 @@ namespace MVC.Controllers
                 }
 
             }
-
+            */
             ViewBag.Msg = "No permission!";
             return View(modData);
         }

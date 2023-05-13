@@ -8,7 +8,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MVC.BackgroundTasks;
-using MVC.DiscordBot;
 using Objects;
 using Objects.Repositories.Interfaces;
 using System;
@@ -96,12 +95,8 @@ namespace MVC
                 var context = serviceScope.ServiceProvider.GetRequiredService<AutoupdaterContext>();
 
                 TelemetryHandler.GetInstance().Services = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
-                BotHandler.GetInstance().Services = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
                 context.Database.Migrate();
             }
-
-            BotHandler.GetInstance().Configuration = Configuration;
-            BotHandler.GetInstance().MainAsync();
         }
     }
 }

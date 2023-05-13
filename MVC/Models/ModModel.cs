@@ -7,10 +7,5 @@ namespace MVC.Models
     {
         public string ModId { get; set; }
         public string ModName { get; set; }
-        public string ModVersion { get; set; }
-        public string ModFileName { get; set; }
-        public string ModDownloadLink { get; set; }
-        public IFormFile ModFile { get; set; }
-        public bool AutoupdatingDisabled { get; set; }
     }
 }

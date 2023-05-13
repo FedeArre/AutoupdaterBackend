@@ -19,7 +19,6 @@ else
 
 
         <label>New version: </label>
-        @Html.TextBoxFor(m => m.ModVersion)<br />
 
         <label for="loadingType">File upload method:</label><br />
         <input type="radio" name="uploadMethod" id="uploadMethodLink" value="link" onchange="updateDivs()" checked />
@@ -30,7 +29,6 @@ else
         <div id="uploadLinkDiv">
             <br>
             <label for="modDownloadLink" class="form-label">Download link: </label>
-            @Html.TextBoxFor(m => m.ModDownloadLink)
         </div>
 
         <div id="uploadFileDiv" style="display:none">
@@ -41,7 +39,6 @@ else
 
         <br>
         
-        @Html.CheckBoxFor(m => m.AutoupdatingDisabled)
         Disable autoupdating?
         <br>
         

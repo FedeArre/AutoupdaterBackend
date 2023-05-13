@@ -155,8 +155,8 @@ namespace MVC.Controllers.API
             allMods.Mods = new List<ModAuthorPair>();
             foreach (Mod m in mods)
             {
-                if (m.DisableAutoupdating)
-                    continue;
+                //if (m.DisableAutoupdating)
+                //    continue;
                 
                 ModAuthorPair map = new ModAuthorPair();
                 map.ModAuthor = m.ModAuthor;

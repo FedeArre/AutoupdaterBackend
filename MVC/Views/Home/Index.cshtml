@@ -13,7 +13,7 @@
     {
         if(Context.Session.GetInt32("userRoleId") == 0)
         {
-            <p>Your account has not been activated by an autoupdater manager. Contact FedesUy#2144 on Discord for more information</p>
+            <p>Your account has not been activated.<br>To activate your account, join the ModUtils Discord server (https://discord.gg/b4hj4E6xMM) and use the /modmanager-verify command. <br><br>Your activation token is: @Context.Session.GetString("userVerificationToken")</p>
         }
 
         if(Context.Session.GetInt32("userRoleId") == 1)
@@ -28,7 +28,7 @@
 
         if(Context.Session.GetInt32("userRoleId") == 3)
         {
-            <p>Your account has been manually deactivated by an autoupdater manager. Contact FedesUy#2144 on Discord for more information about this.</p>
+            <p>Your account has been manually deactivated by an autoupdater manager. Contact Fedes.uy#2144 on Discord for more information about this.</p>
         }
     }
 

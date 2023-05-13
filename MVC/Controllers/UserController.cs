@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MVC.DiscordBot;
 using Objects;
 using Objects.Repositories.Interfaces;
+using System;
 
 namespace MVC.Controllers
 {
@@ -49,9 +49,21 @@ namespace MVC.Controllers
                 return View();
             }
 
+            Random rnd = new Random(Guid.NewGuid().GetHashCode());
+            string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz!#$%&/-";
+            char[] stringChars = new char[45];
+
+            for (int i = 0; i < stringChars.Length; i++)
+            {
+                stringChars[i] = chars[rnd.Next(chars.Length)];
+            }
+
+            var finalString = new String(stringChars);
+
             User newUser = new User();
             newUser.Username = username;
             newUser.Password = password;
+            newUser.DiscordVerificationToken = finalString;
             newUser.Role = UserType.Unverified;
 
             if(userRepo.Add(newUser))
@@ -59,8 +71,9 @@ namespace MVC.Controllers
                 string token = TokenHandler.GetInstance().CreateTokenForUser(newUser.Username);
                 HttpContext.Session.SetString("userLoginToken", token);
                 HttpContext.Session.SetInt32("userRoleId", 0);
+                HttpContext.Session.SetString("userVerificationToken", finalString);
                 HttpContext.Session.SetString("footerMessage", $"Currently logged as " + newUser.Username);
-                BotHandler.GetInstance().SendDiscordMessage($"New user registered on developer page: {newUser.Username}");
+                
                 return RedirectToAction("Index", "Home");
             }
             else
@@ -121,6 +134,7 @@ namespace MVC.Controllers
 
                 HttpContext.Session.SetString("userLoginToken", tempToken);
                 HttpContext.Session.SetInt32("userRoleId", (int)user.Role);
+                HttpContext.Session.SetString("userVerificationToken", user.DiscordVerificationToken);
                 HttpContext.Session.SetString("footerMessage", $"Currently logged as " + user.Username);
 
                 return RedirectToAction("Index", "Home");
