@@ -11,5 +11,6 @@ namespace Objects
         public string ModId { get; set; }
         public string Version { get; set; }
         public int RequiredGameBuildId { get; set; }
+        public string DownloadLink { get; set; }
     }
 }

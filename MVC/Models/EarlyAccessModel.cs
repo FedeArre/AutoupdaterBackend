@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Collections.Generic;
 
 namespace MVC.Models
 {
     public class EarlyAccessModel
     {
         public string ModId { get; set; }
-        public bool IsEarlyAccess { get; set; }
-        public List<EarlyAccessAllowedModel> Authors { get; set; }
+        public string SelectedGroupIdentifier { get; set; } 
+        public List<SelectListItem> AvailableGroups { get; set; }
     }
 }

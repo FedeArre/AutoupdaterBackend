@@ -1,4 +1,5 @@
-﻿using Objects;
+﻿using Microsoft.EntityFrameworkCore;
+using Objects;
 using Objects.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -46,7 +47,7 @@ namespace DataAccess
 
         public IEnumerable<Mod> FindAll()
         {
-            var mods = db.Mods.ToList();
+            var mods = db.Mods.Include(v => v.LatestVersion).ToList();
 
             foreach (Mod m in mods)
             {
@@ -58,7 +59,7 @@ namespace DataAccess
 
         public Mod FindById(string id)
         {
-            var m = db.Mods.Where(m => m.ModId == id).FirstOrDefault();
+            var m = db.Mods.Include(v => v.LatestVersion).Where(m => m.ModId == id).FirstOrDefault();
             if(m != null)
                 m.CPC = TelemetryHandler.GetInstance().GetCurrentPlayerCount(m.ModId);
             return m;
@@ -66,7 +67,7 @@ namespace DataAccess
 
         public Mod FindByFileName(string fileName)
         {
-            var m = db.Mods.Where(m => m.FileName == fileName).FirstOrDefault();
+            var m = db.Mods.Where(m => m.FileName == fileName).Include(v => v.LatestVersion).FirstOrDefault();
 
             if (m != null)
                 m.CPC = TelemetryHandler.GetInstance().GetCurrentPlayerCount(m.ModId);
@@ -76,7 +77,7 @@ namespace DataAccess
 
         public List<Mod> FindByAuthor(string author)
         {
-            var mods = db.Mods.Where(m => m.ModAuthor == author).ToList();
+            var mods = db.Mods.Where(m => m.ModAuthor == author).Include(v => v.LatestVersion).ToList();
             
             foreach(Mod m in mods)
             {

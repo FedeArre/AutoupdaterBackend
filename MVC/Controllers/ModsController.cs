@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using MVC.Models;
 using Objects;
 using Objects.Repositories.Interfaces;
@@ -16,12 +18,14 @@ namespace MVC.Controllers
         private IModRepository modsRepo;
         private IUserRepository userRepo;
         private IEarlyAccessRepository earlyRepo;
+        private GameVersioningHandler gameVersioningHandler;
 
-        public ModsController(IModRepository mods, IUserRepository users, IEarlyAccessRepository earlyAccess)
+        public ModsController(IModRepository mods, IUserRepository users, IEarlyAccessRepository earlyAccess, GameVersioningHandler gameVersioningHandler)
         {
             modsRepo = mods;
             userRepo = users;
             earlyRepo = earlyAccess;
+            this.gameVersioningHandler = gameVersioningHandler;
         }
 
         // Create
@@ -138,9 +142,15 @@ namespace MVC.Controllers
                 Mod modObject = modsRepo.FindById(modId);
                 if (modObject != null && modObject.ModAuthor == u.Username)
                 {
-                    ModModel mm = new ModModel();
+                    ModUpdateModel mm = new ModUpdateModel();
                     mm.ModId = modObject.ModId;
                     mm.ModName = modObject.Name;
+                    List<SelectListItem> selects = new List<SelectListItem>();
+                    foreach(KeyValuePair<string,int> kvp in gameVersioningHandler.GetVersions())
+                    {
+                        selects.Add(new SelectListItem { Text = $"{kvp.Key} - {kvp.Value}", Value = kvp.Value.ToString() });
+                    }
+                    mm.GameBuilds = selects;
                     return View(mm);
                 }
             }
@@ -148,74 +158,48 @@ namespace MVC.Controllers
             return View();
         }
 
-        [HttpGet]
-        public IActionResult DeleteMod(string modId)
+        [HttpPost]
+        public async Task<IActionResult> NewVersion(ModUpdateModel modData)
         {
             if (!CheckUserStatus())
                 return RedirectToAction("Index", "Home");
 
-            // User check
             string token = HttpContext.Session.GetString("userLoginToken");
             User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
-            /*if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
-            {
-                Mod modObject = modsRepo.FindById(modId);
-                if (modObject != null && modObject.ModAuthor == u.Username)
-                {
-                    earlyRepo.DeleteAllTesters(modId);
-                    modsRepo.Delete(modObject);
 
-                    BotHandler.GetInstance().SendDiscordMessage($"{u.Username} has deleted mod {modObject.Name}");
-                    return RedirectToAction("MyMods", "Mods");
-                }
-            }*/
-
-            return View();
-        }
-        
-        [HttpPost]
-        public async Task<IActionResult> NewVersion(ModModel modData)
-        {
-            if (!CheckUserStatus())
-                return RedirectToAction("Index", "Home");
-
-            /*if (string.IsNullOrEmpty(modData.ModDownloadLink) && modData.ModFile == null && !modData.AutoupdatingDisabled)
+            if (string.IsNullOrEmpty(modData.ModDownloadLink) && modData.ModFile == null)
             {
                 ViewBag.Msg = "No mod download link / file was provided!";
                 return View(modData);
             }
 
             // Direct download link provided
-            if (modData.ModFile == null || modData.AutoupdatingDisabled)
+            if (modData.ModFile == null)
             {
-                if(!modData.AutoupdatingDisabled)
-                {
-                    Uri uriResult;
-                    bool result = Uri.TryCreate(modData.ModDownloadLink, UriKind.Absolute, out uriResult)
-                        && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+                Uri uriResult;
+                bool result = Uri.TryCreate(modData.ModDownloadLink, UriKind.Absolute, out uriResult)
+                    && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
 
-                    if (!result)
-                    {
-                        ViewBag.Msg = "The download link is invalid!";
-                        return View(modData);
-                    }
+                if (!result)
+                {
+                    ViewBag.Msg = "The download link is invalid!";
+                    return View(modData);
                 }
 
                 // User check
-                string token = HttpContext.Session.GetString("userLoginToken");
-                User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
                 if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
                 {
                     Mod modObject = modsRepo.FindById(modData.ModId);
                     if (modObject != null && modObject.ModAuthor == u.Username)
                     {
-                        modObject.DownloadLink = modData.ModDownloadLink;
-                        modObject.Version = modData.ModVersion;
-                        modObject.DisableAutoupdating = modData.AutoupdatingDisabled;
-                        
+                        modObject.LatestVersion = new ModVersion();
+                        modObject.LatestVersion.DownloadLink = modData.ModDownloadLink;
+                        modObject.LatestVersion.Version = modData.ModVersion;
+                        modObject.LatestVersion.RequiredGameBuildId = modData.SelectedGameBuild;
+
                         if (modsRepo.Update(modObject))
                         {
-                            return RedirectToAction("MyMods", "Mods");
+                            return RedirectToAction("ModDetails", "Mods", new { modObject.ModId });
                         }
                         else
                         {
@@ -227,8 +211,6 @@ namespace MVC.Controllers
             }
             else
             {
-                string token = HttpContext.Session.GetString("userLoginToken");
-                User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
                 if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
                 {
                     Mod modObject = modsRepo.FindById(modData.ModId);
@@ -275,11 +257,14 @@ namespace MVC.Controllers
                             return View();
                         }
 
-                        modObject.DownloadLink = "https://mygaragemod.xyz/Mods/DownloadMod?mod=" + modData.ModId + ".dll";
-                        //modObject.Version = modData.ModVersion;
+                        modObject.LatestVersion = new ModVersion();
+                        modObject.LatestVersion.DownloadLink = "https://mygaragemod.xyz/Mods/DownloadMod?mod=" + modData.ModId + ".dll"; ;
+                        modObject.LatestVersion.Version = modData.ModVersion;
+                        modObject.LatestVersion.RequiredGameBuildId = modData.SelectedGameBuild;
+
                         if (modsRepo.Update(modObject))
                         {
-                            return RedirectToAction("MyMods", "Mods");
+                            return RedirectToAction("ModDetails", "Mods", new { modObject.ModId });
                         }
                         else
                         {
@@ -290,9 +275,59 @@ namespace MVC.Controllers
                 }
 
             }
-            */
+
             ViewBag.Msg = "No permission!";
             return View(modData);
+        }
+
+        [HttpGet]
+        public IActionResult DeleteMod(string modId)
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            // User check
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            /*if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                Mod modObject = modsRepo.FindById(modId);
+                if (modObject != null && modObject.ModAuthor == u.Username)
+                {
+                    earlyRepo.DeleteAllTesters(modId);
+                    modsRepo.Delete(modObject);
+
+                    BotHandler.GetInstance().SendDiscordMessage($"{u.Username} has deleted mod {modObject.Name}");
+                    return RedirectToAction("MyMods", "Mods");
+                }
+            }*/
+
+            return View();
+        }
+        
+        [HttpGet]
+        public IActionResult ModDetails(string modId)
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            // User check
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                Mod modObject = modsRepo.FindById(modId);
+                if (modObject != null && modObject.ModAuthor == u.Username)
+                {
+                    ModManageModel mmm = new ModManageModel(modObject);
+                    mmm.CPC = TelemetryHandler.GetInstance().GetCurrentPlayerCount(modObject.ModId);
+                    mmm.CPC_ModUtils = TelemetryHandler.GetInstance().GetCurrentPlayerCount("ModUtils");
+
+                    return View(mmm);
+                }
+            }
+
+            return RedirectToAction("MyMods", "Mods");
         }
 
         public bool CheckUserStatus()

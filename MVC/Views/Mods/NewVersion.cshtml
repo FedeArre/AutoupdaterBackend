@@ -1,4 +1,4 @@
-﻿@model ModModel
+﻿@model ModUpdateModel
 @*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
@@ -19,6 +19,7 @@ else
 
 
         <label>New version: </label>
+        @Html.TextBoxFor(m => m.ModVersion)<br />
 
         <label for="loadingType">File upload method:</label><br />
         <input type="radio" name="uploadMethod" id="uploadMethodLink" value="link" onchange="updateDivs()" checked />
@@ -29,6 +30,7 @@ else
         <div id="uploadLinkDiv">
             <br>
             <label for="modDownloadLink" class="form-label">Download link: </label>
+            @Html.TextBoxFor(m => m.ModDownloadLink)
         </div>
 
         <div id="uploadFileDiv" style="display:none">
@@ -38,10 +40,10 @@ else
         </div>
 
         <br>
-        
-        Disable autoupdating?
+        <label for="SelectedGameBuild">Minimum game version: </label>
+        <select asp-for="SelectedGameBuild" class="form-control" asp-items=@Model.GameBuilds>
+        </select>
         <br>
-        
         <input type="submit">
     </form>
 }

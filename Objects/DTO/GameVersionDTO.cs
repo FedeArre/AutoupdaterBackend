@@ -6,8 +6,8 @@ namespace Objects.DTO
 {
     public class GameVersionDTO
     {
-        public int Public;
-        public int Test;
-        public int Beta;
+        public int Public { get; set; }
+        public int Test { get; set; }
+        public int Beta { get; set; }
     }
 }

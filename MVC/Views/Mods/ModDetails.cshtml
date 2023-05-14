@@ -1,0 +1,31 @@
+﻿@model ModManageModel
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<p>Mod details of @Model.ModName (@Model.ModId)</p>
+
+<p>Current player count: @Model.CPC / @Model.CPC_ModUtils</p>
+
+@if(Model.Version == null)
+{
+    <p>Autoupdater is not enabled for this mod.</p>
+}
+else
+{
+    <p>Autoupdater enabled, mod version is @Model.Version (Min. game build: @Model.RequiredGameBuild)</p>
+}
+
+@if(Model.EA)
+{
+    <p>Early Access is currently enabled for this mod</p>
+}
+else
+{
+    <p>Early Access is currently disabled for this mod</p>
+}
+
+<a href="NewVersion?modId=@Model.ModId" class="btn btn-primary">Update mod</a>
+<a href="EarlyAccessManager?modId=@Model.ModId" class="btn btn-primary">Manage Early Access</a>
