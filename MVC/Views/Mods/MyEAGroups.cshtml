@@ -1,0 +1,39 @@
+@model MyGroupsModel
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<a href="CreateEAGroup" class="btn btn-primary">Create new group</a>
+<br>
+@if(Model.GroupList.Count() == 0)
+{
+    <p>You don't have any EA groups!</p>
+}
+else
+{
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Group name</th>
+                <th scope="col">User count</th>
+                <th scope="col">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var item in Model.GroupList)
+            {
+                <tr>
+                    <th scope="row">@item.GroupName</th>
+                    <th scope="row">@item.Users.Count()</th>
+                    <th scope="row">
+                        <a href="ManageEAGroup?groupName=@item.GroupName">Manage</a>
+                    </th>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@ViewBag.Msg

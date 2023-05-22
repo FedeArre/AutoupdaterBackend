@@ -1,0 +1,31 @@
+@model EAGroupModel
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<a href="AddUserToGroup?group=@Model.GroupName" class="btn btn-primary">Add user</a>
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Username</th>
+            <th scope="col">SteamID</th>
+            <th scope="col">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Users)
+        {
+            <tr>
+                <th scope="row">@item.Username</th>
+                <th scope="row">@item.Steam64>
+                <th scope="row">
+                    <a href="RemoveUserFromGroup?group=@Model.GroupName&user=@item.Steam64">Remove</a>
+                </th>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@ViewBag.Msg

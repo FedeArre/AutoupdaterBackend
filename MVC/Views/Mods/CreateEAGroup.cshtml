@@ -1,0 +1,25 @@
+@model EAGroupModel
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-5">
+            <h2>Create new Early Access group</h2>
+
+            @using (Html.BeginForm("CreateEAGroup", "Mods", FormMethod.Post, new { enctype="multipart/form-data"}))
+            {
+                <label for="groupName" class="form-label">Group name: </label>
+                @Html.TextBoxFor(m => m.GroupName, new { @class = "form-control"})
+
+                <br />
+
+                <input type="submit" class="btn btn-primary"/>
+            }
+        </div>
+    </div>
+</div>
+@ViewBag.Msg
