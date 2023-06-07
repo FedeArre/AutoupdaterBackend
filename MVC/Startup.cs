@@ -43,7 +43,6 @@ namespace MVC
             services.AddDbContext<AutoupdaterContext>(options =>
             {
                 options.UseMySQL(Configuration.GetConnectionString("Default"));
-                
             });
 
             services.AddHttpsRedirection(options =>
