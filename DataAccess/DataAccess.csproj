@@ -11,6 +11,12 @@
     <Compile Remove="Migrations\20220918181833_earlyAccess4.Designer.cs" />
     <Compile Remove="Migrations\20220918182120_earlyAccess5.cs" />
     <Compile Remove="Migrations\20220918182120_earlyAccess5.Designer.cs" />
+    <Compile Remove="Migrations\20230609115346_eaGroups.cs" />
+    <Compile Remove="Migrations\20230609115346_eaGroups.Designer.cs" />
+    <Compile Remove="Migrations\20230609115835_eaGroups.cs" />
+    <Compile Remove="Migrations\20230609115835_eaGroups.Designer.cs" />
+    <Compile Remove="Migrations\20230610122418_eaGroupKey.cs" />
+    <Compile Remove="Migrations\20230610122418_eaGroupKey.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +27,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.26" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.26" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.26">
       <PrivateAssets>all</PrivateAssets>
@@ -32,6 +39,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Objects\Objects.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Migrations\" />
   </ItemGroup>
 
 </Project>

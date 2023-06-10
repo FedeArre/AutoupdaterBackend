@@ -8,6 +8,7 @@ using Objects.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -166,6 +167,13 @@ namespace MVC.Controllers
 
             string token = HttpContext.Session.GetString("userLoginToken");
             User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+
+            List<SelectListItem> selects = new List<SelectListItem>();
+            foreach (KeyValuePair<string, int> kvp in gameVersioningHandler.GetVersions())
+            {
+                selects.Add(new SelectListItem { Text = $"{kvp.Key} - {kvp.Value}", Value = kvp.Value.ToString() });
+            }
+            modData.GameBuilds = selects;
 
             if (string.IsNullOrEmpty(modData.ModDownloadLink) && modData.ModFile == null)
             {
@@ -328,6 +336,247 @@ namespace MVC.Controllers
             }
 
             return RedirectToAction("MyMods", "Mods");
+        }
+
+        [HttpGet]
+        public IActionResult MyEAGroups()
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            // User check
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                MyGroupsModel mgm = new MyGroupsModel();
+                List<EarlyAccessGroup> EarlyAccessGroups = earlyRepo.FindGroupFromUser(u);
+                mgm.GroupList = EarlyAccessGroups;
+
+                return View(mgm);
+            }
+
+            return RedirectToAction("MyMods", "Mods");
+        }
+
+        [HttpGet]
+        public IActionResult CreateEAGroup()
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult CreateEAGroup(EAGroupModel model)
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            if (string.IsNullOrEmpty(model.GroupName))
+            {
+                ViewBag.Msg = "Group name can't be empty!";
+                return View(model);
+            }
+
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                EarlyAccessGroup existinGroup = earlyRepo.FindSpecificGroupFromUser(model.GroupName, u);
+                if (existinGroup != null)
+                {
+                    ViewBag.Msg = "A group already exists with this name!";
+                    return View(model);
+                }
+
+                EarlyAccessGroup createdGroup = new EarlyAccessGroup();
+                createdGroup.Owner = u;
+                createdGroup.Users = new List<EAS>();
+                createdGroup.GroupName = model.GroupName;
+
+                if (earlyRepo.Add(createdGroup))
+                {
+                    return RedirectToAction("MyEAGroups", "Mods");
+                }
+                else
+                {
+                    ViewBag.Msg = "Something went wrong while saving the group. Try again!";
+                }
+
+                return View();
+            }
+
+            ViewBag.Msg = "Something went wrong";
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult ManageEAGroup(string groupName)
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            if (string.IsNullOrEmpty(groupName))
+            {
+                return RedirectToAction("MyEAGroups", "Mods");
+            }
+
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                EarlyAccessGroup existinGroup = earlyRepo.FindSpecificGroupFromUser(groupName, u);
+                if (existinGroup != null)
+                {
+                    EAGroupModel eagpmd = new EAGroupModel();
+                    eagpmd.GroupName = groupName;
+                    eagpmd.Users = existinGroup.Users;
+
+                    return View(eagpmd);
+                }
+
+                return RedirectToAction("MyEAGroups", "Mods");
+            }
+
+            return RedirectToAction("MyEAGroups", "Mods");
+        }
+
+        [HttpGet]
+        public IActionResult AddUserToGroup(string group)
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            if (string.IsNullOrEmpty(group))
+            {
+                return RedirectToAction("MyEAGroups", "Mods");
+            }
+
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                EarlyAccessGroup existinGroup = earlyRepo.FindSpecificGroupFromUser(group, u);
+                if (existinGroup != null)
+                {
+                    EarlyAccessAllowedModel eaam = new EarlyAccessAllowedModel();
+                    eaam.GroupName = existinGroup.GroupName;
+
+                    return View(eaam);
+                }
+
+                return RedirectToAction("MyEAGroups", "Mods");
+            }
+
+            return RedirectToAction("MyEAGroups", "Mods");
+        }
+
+        [HttpPost]
+        public IActionResult AddUserToGroup(EarlyAccessAllowedModel eaam)
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            if (string.IsNullOrEmpty(eaam.GroupName))
+            {
+                return RedirectToAction("MyEAGroups", "Mods");
+            }
+
+            if(string.IsNullOrEmpty(eaam.Username))
+            {
+                ViewBag.Msg = "Username can't be empty!";
+                return View(eaam);
+            }
+
+            if (string.IsNullOrEmpty(eaam.Steam64))
+            {
+                ViewBag.Msg = "Steam64 can't be empty!";
+                return View(eaam);
+            }
+
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                EarlyAccessGroup existinGroup = earlyRepo.FindSpecificGroupFromUser(eaam.GroupName, u);
+                if (existinGroup != null)
+                {
+                    EAS repeatedUser = existinGroup.Users.Where(u => u.Steam64 == eaam.Steam64).FirstOrDefault();
+                    if(repeatedUser != null)
+                    {
+                        ViewBag.Msg = $"A user already has that SteamID on the group! (Username: {repeatedUser.Username})";
+                        return View(eaam);
+                    }
+                    else
+                    {
+                        EAS newTester = new EAS();
+                        newTester.Username = eaam.Username;
+                        newTester.Steam64 = eaam.Steam64;
+                        newTester.OwnerUsername = u.Username;
+                        newTester.Group = eaam.GroupName;
+
+                        if(earlyRepo.AddTesterToGroup(newTester, eaam.GroupName, u))
+                        {
+                            return RedirectToAction("ManageEAGroup", "Mods", new { groupName = eaam.GroupName});
+                        }
+                        else
+                        {
+                            ViewBag.Msg = "Something went wrong...";
+                            return View(eaam);
+                        }
+                    }
+                }
+
+                return RedirectToAction("MyEAGroups", "Mods");
+            }
+
+            return RedirectToAction("MyEAGroups", "Mods");
+        }
+
+        [HttpGet]
+        public IActionResult RemoveUserFromGroup(string group, string user)
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            if (string.IsNullOrEmpty(group))
+            {
+                return RedirectToAction("MyEAGroups", "Mods");
+            }
+
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                EarlyAccessGroup existinGroup = earlyRepo.FindSpecificGroupFromUser(group, u);
+                if (existinGroup != null)
+                {
+                    EAS easUser = existinGroup.Users.Where(u => u.Steam64 == user).FirstOrDefault();
+                    if(easUser != null)
+                    {
+                        if(earlyRepo.RemoveTesterFromGroup(easUser, group, u))
+                        {
+                            return RedirectToAction("ManageEAGroup", "Mods", new { groupName = group });
+
+                        }
+                        else
+                        {
+                            return RedirectToAction("MyEAGroups", "Mods");
+                        }
+                    }
+                    else
+                    {
+                        return RedirectToAction("MyEAGroups", "Mods");
+                    }
+                }
+
+                return RedirectToAction("MyEAGroups", "Mods");
+            }
+
+            return RedirectToAction("MyEAGroups", "Mods");
+
         }
 
         public bool CheckUserStatus()

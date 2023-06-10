@@ -6,7 +6,9 @@ namespace Objects.Repositories.Interfaces
 {
     public interface IEarlyAccessRepository : IRepository<EarlyAccessGroup>
     {
-        bool AddTesterToGroup(EarlyAccessStatus tester, string groupName, User owner);
-        bool RemoveTesterFromGroup(EarlyAccessStatus tester, string groupName, User owner);
+        bool AddTesterToGroup(EAS tester, string groupName, User owner);
+        bool RemoveTesterFromGroup(EAS tester, string groupName, User owner);
+        List<EarlyAccessGroup> FindGroupFromUser(User owner);
+        EarlyAccessGroup FindSpecificGroupFromUser(string groupName, User owner);
     }
 }

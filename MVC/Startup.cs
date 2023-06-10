@@ -43,6 +43,7 @@ namespace MVC
             services.AddDbContext<AutoupdaterContext>(options =>
             {
                 options.UseMySQL(Configuration.GetConnectionString("Default"));
+                //options.UseInMemoryDatabase("mygarage");
             });
 
             services.AddHttpsRedirection(options =>

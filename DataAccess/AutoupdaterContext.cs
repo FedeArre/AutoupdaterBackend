@@ -25,8 +25,9 @@ namespace DataAccess
         {
             modelBuilder.Ignore<Telemetry>();
             modelBuilder.Ignore<TelemetryHandler>();
-            modelBuilder.Ignore<EarlyAccessGroup>();
-            modelBuilder.Ignore<EarlyAccessStatus>();
+            //modelBuilder.Entity<EAS>().HasKey(eas => new { eas.Steam64, eas.Username, eas.OwnerUsername, eas.Group });
+            modelBuilder.Entity<EarlyAccessGroup>().HasMany(g => g.Users).WithOne();
+            modelBuilder.Ignore<EAS>();
         }
     }
 }

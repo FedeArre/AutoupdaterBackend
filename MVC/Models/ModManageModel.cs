@@ -22,7 +22,7 @@ namespace MVC.Models
                 RequiredGameBuild = mod.LatestVersion.RequiredGameBuildId;
             }
 
-            EA = mod.EarlyAccessEnabled;
+            //EA = mod.EarlyAccessEnabled;
         }
     }
 }

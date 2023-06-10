@@ -94,12 +94,12 @@ namespace MVC.Controllers.API
                 return BadRequest();
 
             Mod m = modsRepo.FindById(eaj.ModId);
-            if(m == null || !m.EarlyAccessEnabled)
+            if(m == null /*|| !m.EarlyAccessEnabled*/)
             {
                 return Ok(false);
             }
 
-            EarlyAccessStatus eas = null;
+            EAS eas = null;
             /*foreach (var ea in earlyRepo.FindByModId(eaj.ModId))
             {
                 if (ea.Steam64 == eaj.SteamId)
@@ -176,7 +176,7 @@ namespace MVC.Controllers.API
                 return BadRequest("Invalid token");
 
             Mod m = modsRepo.FindById(model.DummyModId);
-            if (m == null || !m.EarlyAccessEnabled)
+            if (m == null /*|| !m.EarlyAccessEnabled*/)
             {
                 return Ok(false);
             }
