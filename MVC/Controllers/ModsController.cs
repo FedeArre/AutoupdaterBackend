@@ -514,8 +514,6 @@ namespace MVC.Controllers
                         EAS newTester = new EAS();
                         newTester.Username = eaam.Username;
                         newTester.Steam64 = eaam.Steam64;
-                        newTester.OwnerUsername = u.Username;
-                        newTester.Group = eaam.GroupName;
 
                         if(earlyRepo.AddTesterToGroup(newTester, eaam.GroupName, u))
                         {
@@ -577,6 +575,46 @@ namespace MVC.Controllers
 
             return RedirectToAction("MyEAGroups", "Mods");
 
+        }
+
+        // Upload new version
+        [HttpGet]
+        public IActionResult EarlyAccessManager(string modId)
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            // User check
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                Mod modObject = modsRepo.FindById(modId);
+                if (modObject != null && modObject.ModAuthor == u.Username)
+                {
+                    EarlyAccessModel eam = new EarlyAccessModel();
+                    List<EarlyAccessGroup> myGroups = earlyRepo.FindGroupFromUser(u);
+
+                    eam.GroupsAvailable = new List<string>();
+                    eam.GroupsAllowed = new List<string>();
+
+                    foreach(EarlyAccessGroup eag in myGroups)
+                    {
+                        if(modObject.Allowed.Where(g => g.Group.GroupName == eag.GroupName).FirstOrDefault() != null)
+                        {
+                            eam.GroupsAllowed.Add(eag.GroupName);
+                        }
+                        else
+                        {
+                            eam.GroupsAvailable.Add(eag.GroupName);
+                        }
+                    }
+
+                    return View(eam);
+                }
+            }
+
+            return RedirectToAction("Index", "Home");
         }
 
         public bool CheckUserStatus()

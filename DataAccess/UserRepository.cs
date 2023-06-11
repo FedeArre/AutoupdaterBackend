@@ -51,7 +51,10 @@ namespace DataAccess
         {
             return db.Users.Where(user => user.DiscordVerificationToken == discordToken).FirstOrDefault();
         }
-
+        public User FindByDiscordId(string id)
+        {
+            return db.Users.Where(user => user.DiscordId == id).FirstOrDefault();
+        }
         public User FindById(string id)
         {
             return db.Users.Where(user => user.Username == id).FirstOrDefault();

@@ -55,9 +55,17 @@ namespace MVC.Controllers.API
                 return NotFound(nm);
             }
 
-            if(u.Role == UserType.Unverified)
+            User u2 = userRepo.FindByDiscordId(model.DiscordId);
+            if (u2 != null)
+            {
+                nm.Message = "This Discord ID is already linked!";
+                return Conflict(nm);
+            }
+
+            if (u.Role == UserType.Unverified)
             {
                 u.Role = UserType.Modder;
+                u.DiscordId = model.DiscordId;
                 userRepo.Update(u);
                 nm.Message = "Your account has been succesfully activated. You may need to log in again in order to start using Mod Manager";
                 return Ok(nm);

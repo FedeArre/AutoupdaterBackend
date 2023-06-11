@@ -7,14 +7,11 @@ namespace Objects
 {
     public class EAS
     {
+        public int Id { get; set; }
         public EarlyAccessGroup eag { get; set; }
         [MaxLength(50)]
         public string Steam64 { get; set; }
         [MaxLength(50)]
         public string Username { get; set; }
-        [MaxLength(50)]
-        public string Group { get; set; }
-        [MaxLength(50)]
-        public string OwnerUsername { get; set; }
     }
 }

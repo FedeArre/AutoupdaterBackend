@@ -9,5 +9,6 @@ namespace Objects.Repositories.Interfaces
         public User Login(string username, string plainTextPassword);
         public User FindByToken(string token);
         public User FindByDiscordToken(string discordToken);
+        public User FindByDiscordId(string id);
     }
 }

@@ -35,8 +35,17 @@ namespace DataAccess
             EarlyAccessGroup eag = FindSpecificGroupFromUser(groupName, owner);
             if(eag != null)
             {
-                eag.Users.Add(tester);
-                return Update(eag);
+                tester.eag = eag;
+                try
+                {
+                    db.EarlyAccessTesters.Add(tester);
+                    db.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
             }
 
             return false;
@@ -79,8 +88,18 @@ namespace DataAccess
             EarlyAccessGroup eag = FindSpecificGroupFromUser(groupName, owner);
             if (eag != null)
             {
-                if(eag.Users.Remove(tester))
-                    return Update(eag);
+                tester.eag = eag;
+                try
+                {
+                    db.EarlyAccessTesters.Remove(tester);
+                    db.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
+
             }
 
             return false;

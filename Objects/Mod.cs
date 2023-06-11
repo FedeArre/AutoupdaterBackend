@@ -16,7 +16,7 @@ namespace Objects
         public string ModAuthor { get; set; }
         public int CPC { get; set; } // Current player count
         public int PeakMax { get; set; }
-        public EarlyAccessGroup EarlyAccessGroup { get; set; }
+        public ICollection<ModAllowed> Allowed { get; set; }
         public ModVersion LatestVersion { get; set; }
         public int Peak24;
     }

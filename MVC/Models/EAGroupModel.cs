@@ -8,6 +8,6 @@ namespace MVC.Models
     public class EAGroupModel
     {
         public string GroupName { get; set; }
-        public List<EAS> Users { get; set; }
+        public ICollection<EAS> Users { get; set; }
     }
 }

@@ -13,6 +13,7 @@ namespace DataAccess
         //public DbSet<Telemetry> Telemetry { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<EarlyAccessGroup> EarlyAccess { get; set; }
+        public DbSet<EAS> EarlyAccessTesters { get; set; }
         public DbSet<ModDailyData> ModDailyData { get; set; }
     
         public AutoupdaterContext(DbContextOptions<AutoupdaterContext> options)
@@ -26,8 +27,9 @@ namespace DataAccess
             modelBuilder.Ignore<Telemetry>();
             modelBuilder.Ignore<TelemetryHandler>();
             //modelBuilder.Entity<EAS>().HasKey(eas => new { eas.Steam64, eas.Username, eas.OwnerUsername, eas.Group });
-            modelBuilder.Entity<EarlyAccessGroup>().HasMany(g => g.Users).WithOne();
-            modelBuilder.Ignore<EAS>();
+            modelBuilder.Entity<EAS>()
+                .Property(f => f.Id)
+                .ValueGeneratedOnAdd();
         }
     }
 }

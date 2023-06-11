@@ -13,6 +13,6 @@ namespace Objects
         [Key]
         public User Owner { get; set; }
 
-        public List<EAS> Users { get; set; }
+        public virtual ICollection<EAS> Users { get; set; }
     }
 }

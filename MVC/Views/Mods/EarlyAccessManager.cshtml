@@ -7,3 +7,45 @@
 
 <p>Managing Early Access for @Model.ModId</p>
 
+<h2>Allowed groups</h2>
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Group name</th>
+            <th scope="col">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.GroupsAllowed)
+        {
+            <tr>
+                <th scope="row">@item</th>
+                <th scope="row">
+                    <a href="RemoveGroupFromMod?modId=@Model.ModId&group=@item">Disallow</a>
+                </th>
+            </tr>
+        }
+    </tbody>
+</table>
+<br />
+<h2>Available groups</h2>
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Group name</th>
+            <th scope="col">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.GroupsAvailable)
+        {
+            <tr>
+                <th scope="row">@item</th>
+                <th scope="row">
+                    <a href="AddGroupToMod?modId=@Model.ModId&group=@item">Allow</a>
+                </th>
+            </tr>
+        }
+    </tbody>
+</table>
+@ViewBag.Msg
