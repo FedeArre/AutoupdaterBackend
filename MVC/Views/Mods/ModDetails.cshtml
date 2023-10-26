@@ -27,7 +27,17 @@ else
     <p>Early Access is currently disabled for this mod</p>
 }
 
+@if(Model.NotLongerSupported)
+{
+    <p>This mod has been <span style="color: red">marked as unsupported</span> </p>
+}
+else
+{
+    <p>The mod is marked as supported</p>
+}
+
 <a href="NewVersion?modId=@Model.ModId" class="btn btn-primary">Update mod</a>
 <a href="EarlyAccessManager?modId=@Model.ModId" class="btn btn-primary">Manage Early Access</a>
+<a href="Unsupported?modId=@Model.ModId" class="btn btn-warning">Mark as  @if(Model.NotLongerSupported) { <span>supported</span> } else { <span>unsupported</span>}</a>
 <br /><br />
 <a href="DeleteMod?modId=@Model.ModId" class="btn btn-danger">Delete</a>

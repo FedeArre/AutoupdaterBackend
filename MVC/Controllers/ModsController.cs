@@ -11,7 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using static Google.Protobuf.Collections.MapField<TKey, TValue>;
 
 namespace MVC.Controllers
 {
@@ -324,6 +323,38 @@ namespace MVC.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult Unsupported(string modId)
+        {
+            if (!CheckUserStatus())
+                return RedirectToAction("Index", "Home");
+
+            string token = HttpContext.Session.GetString("userLoginToken");
+            User u = userRepo.FindById(TokenHandler.GetInstance().IsUserLogged(token));
+
+            // User check
+            if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
+            {
+                Mod modObject = modsRepo.FindById(modId);
+                if (modObject != null && modObject.ModAuthor == u.Username)
+                {
+                    modObject.ModUnsupported = !modObject.ModUnsupported;
+
+                    if (modsRepo.Update(modObject))
+                    {
+                        return RedirectToAction("ModDetails", "Mods", new { modObject.ModId });
+                    }
+                    else
+                    {
+                        ViewBag.Msg = "Something went wrong :(";
+                        return View();
+                    }
+                }
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
         [HttpPost]
         [DisableRequestSizeLimit]
         public async Task<IActionResult> UploadEAMod(ModUpdateModel modData)
@@ -481,7 +512,7 @@ namespace MVC.Controllers
                     ModManageModel mmm = new ModManageModel(modObject);
                     mmm.CPC = TelemetryHandler.GetInstance().GetCurrentPlayerCount(modObject.ModId);
                     mmm.CPC_ModUtils = TelemetryHandler.GetInstance().GetCurrentPlayerCount("ModUtils");
-
+                    mmm.NotLongerSupported = modObject.ModUnsupported;
                     return View(mmm);
                 }
             }

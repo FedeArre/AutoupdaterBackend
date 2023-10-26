@@ -16,5 +16,6 @@ namespace Objects
         public ICollection<ModAllowed> Allowed { get; set; }
         public ModVersion LatestVersion { get; set; }
         public int Peak24;
+        public bool ModUnsupported { get; set; }
     }
 }

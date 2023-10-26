@@ -11,7 +11,7 @@ namespace MVC.Models
         public int CPC { get; set; }
         public int CPC_ModUtils { get; set; }
         public bool EA { get; set; }
-
+        public bool NotLongerSupported { get; set; }
         public ModManageModel(Mod mod)
         {
             ModId = mod.ModId;
