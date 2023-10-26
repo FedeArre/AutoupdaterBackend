@@ -12,5 +12,7 @@ namespace Objects.Repositories.Interfaces
         EarlyAccessGroup FindSpecificGroupFromUser(string groupName, User owner);
         EarlyAccessModObject GetEAModObject(string modId);
         bool UpdateEAMod(EarlyAccessModObject eamo);
+        bool AddEAModObject(EarlyAccessModObject eamo);
+        EarlyAccessModObject FindEAObjectByKey(string key);
     }
 }

@@ -31,6 +31,8 @@ namespace MVC.Controllers.API
             if (modsList == null || modsList.mods == null)
                 return BadRequest();
 
+            Console.WriteLine($"[SERVER]: {HttpContext.Connection.RemoteIpAddress.ToString()} using {modsList.mods.Capacity} mods");
+
             List<ModToSendDTO> modsToUpdate = new List<ModToSendDTO>();
             try
             {
@@ -39,9 +41,9 @@ namespace MVC.Controllers.API
                     Mod mod = modsRepo.FindById(m.modId);
                     if(mod != null)
                     {
-                        if(mod.LatestVersion != null && mod.LatestVersion.Version != m.version)
+                        if((mod.LatestVersion != null && mod.LatestVersion.Version != m.version) || mod.ModUnsupported)
                         {
-                            if(mod.LatestVersion.RequiredGameBuildId <= modsList.BuildId)
+                            if(mod.LatestVersion.RequiredGameBuildId <= modsList.BuildId || mod.ModUnsupported)
                             {
                                 ModToSendDTO mts = new ModToSendDTO();
                                 mts.mod_id = mod.ModId;
@@ -49,6 +51,7 @@ namespace MVC.Controllers.API
                                 mts.current_download_link = mod.LatestVersion.DownloadLink;
                                 mts.current_version = mod.LatestVersion.Version;
                                 mts.mod_name = mod.Name;
+                                mts.unsupported = mod.ModUnsupported;
 
                                 modsToUpdate.Add(mts);
                             }
@@ -66,7 +69,7 @@ namespace MVC.Controllers.API
 
             return Ok(modsToUpdate);
         }
-        
+
         [HttpPost, Route("alive")]
         public ActionResult<bool> Alive([FromBody] ModsDTO modsList)
         {
@@ -119,6 +122,41 @@ namespace MVC.Controllers.API
                 }
             }
             return Ok(false);
+        }
+
+        [HttpPost, Route("eachecknew")]
+        public ActionResult<bool> SafeEarlyAccess(SafeEarlyAccessJson eaj)
+        {
+            if (eaj == null || eaj.Key == null || eaj.SteamId == null)
+                return BadRequest();
+
+            EarlyAccessModObject eamo = earlyRepo.FindEAObjectByKey(eaj.Key);
+
+            Console.WriteLine($"[SERVER]: Early Access lookup for key {eaj.Key} by {eaj.SteamId}");
+
+            if(eamo == null)
+                return NoContent();
+
+            IEnumerable<EarlyAccessGroup> EAGs = earlyRepo.FindAll(); // don't ask me why, but groups wont load without this...
+
+            Mod m = modsRepo.FindById(eamo.ModId);
+            if (m == null)
+                return NotFound();
+
+            foreach (ModAllowed ma in m.Allowed)
+            {
+                if (ma.Group != null)
+                {
+                    foreach (EAS tester in ma.Group.Users)
+                    {
+                        if (tester.Steam64 == eaj.SteamId)
+                        {
+                            return File(System.IO.File.OpenRead(eamo.DownloadLink), "application/octet-stream");
+                        }
+                    }
+                }
+            }
+            return Forbid();
         }
 
         [HttpGet, Route("playercount")]

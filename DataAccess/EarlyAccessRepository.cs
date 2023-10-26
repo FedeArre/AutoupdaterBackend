@@ -119,6 +119,20 @@ namespace DataAccess
             }
         }
 
+        public bool AddEAModObject(EarlyAccessModObject eamo)
+        {
+            try
+            {
+                db.EAModObjects.Add(eamo);
+                db.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
         public EarlyAccessModObject GetEAModObject(string modId)
         {
             return db.EAModObjects.Where(m => m.ModId == modId).FirstOrDefault();
@@ -136,6 +150,11 @@ namespace DataAccess
             {
                 return false;
             }
+        }
+
+        public EarlyAccessModObject FindEAObjectByKey(string key)
+        {
+            return db.EAModObjects.Where(m => m.CurrentKey == key).FirstOrDefault();
         }
     }
 }

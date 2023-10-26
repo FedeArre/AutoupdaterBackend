@@ -11,5 +11,6 @@ namespace MVC.Models.DTO
         public string created_by { get; set; }
         public string file_name { get; set; } 
         public DateTime last_update { get; set; }
+        public bool unsupported { get; set; }
     }
 }

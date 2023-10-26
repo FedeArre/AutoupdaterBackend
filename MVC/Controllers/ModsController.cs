@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -371,7 +372,6 @@ namespace MVC.Controllers
                 return View(modData);
             }
 
-
             if (u != null && (u.Role == UserType.Modder || u.Role == UserType.AutoupdaterDev))
             {
                 Mod modObject = modsRepo.FindById(modData.ModId);
@@ -405,60 +405,64 @@ namespace MVC.Controllers
                     var path = Path.Combine(
                       Directory.GetCurrentDirectory(), "wwwroot/eamodfiles", (modData.ModId + ".dll"));
 
+                    string key = Guid.NewGuid().ToString();
+                    FileStream file = null;
                     try
                     {
                         using (var stream = new FileStream(path, FileMode.Create))
                         {
                             await modData.ModFile.CopyToAsync(stream);
                         }
+                        string code = $"MDU783-" + key;
 
-                        string code = @"
-                            using System;
-                            using System.Collections.Generic;
-
-                            public class MyClass
-                            {
-                                public void MyMethod()
-                                {
-                                    List<string> myList = new List<string>();
-                                    Console.WriteLine(""Hello from MyClass!"");
-                                }
-                            }";
-
-                        string filePath = "MyClass.cs";
+                        using (file = System.IO.File.Create("wwwroot/dummymod/" + (modData.ModId + ".dll")))
+                        {
+                            file.Write(new UTF8Encoding().GetBytes(code));
+                        }
                     }
                     catch (Exception ex)
                     {
-                        ViewBag.Msg = "Something went wrong uploading the mod! Please re-upload it";
+                        ViewBag.Msg = $"Something went wrong uploading the mod! Please re-upload it. More data about the issue: {ex.Message} / {ex.StackTrace}";
                         return View();
                     }
 
                     EarlyAccessModObject eamo = earlyRepo.GetEAModObject(modData.ModId);
-                    if(eamo != null)
+                    bool isNew = false;
+                    if(eamo == null)
                     {
-                        // UPDATING OBJECT!
-                    }
-                    else // Creating new
-                    {
+                        isNew = true;
                         eamo = new EarlyAccessModObject();
-                        eamo.ModId = modData.ModId;
-                        eamo.DownloadLink = "https://modding.fedes.uy/Mods/EarlyAccessDownload?mod=" + modData.ModId + ".dll";
-                        eamo.CurrentKey = new System.Guid().ToString();
                     }
 
-                    modObject.LatestVersion = new ModVersion();
-                    modObject.LatestVersion.DownloadLink = "https://modding.fedes.uy/Mods/DownloadMod?mod=" + modData.ModId + ".dll"; ;
-                    modObject.LatestVersion.Version = modData.ModVersion;
-                    modObject.LatestVersion.RequiredGameBuildId = modData.SelectedGameBuild;
+                    eamo.ModId = modData.ModId;
+                    eamo.DownloadLink = "wwwroot/eamodfiles/" + (modData.ModId + ".dll");
+                    eamo.CurrentKey = key;
 
-                    if (modsRepo.Update(modObject))
+                    if(isNew)
                     {
-                        return RedirectToAction("ModDetails", "Mods", new { modObject.ModId });
+                        if (earlyRepo.AddEAModObject(eamo))
+                        {
+                            ViewBag.Msg = "Mod created! Good stuff happens now";
+                            return PhysicalFile(file.Name, "application/octet-stream", modObject.FileName);
+                        }
+                        else
+                        {
+                            ViewBag.Msg = "Something went wrong :(";
+                            return View();
+                        }
                     }
                     else
                     {
-                        ViewBag.Msg = "Something went wrong :(";
-                        return View();
+                        if (earlyRepo.UpdateEAMod(eamo))
+                        {
+                            ViewBag.Msg = "Mod updated, have fun!";
+                            return PhysicalFile(file.Name, "application/octet-stream", modObject.FileName);
+                        }
+                        else
+                        {
+                            ViewBag.Msg = "Something went wrong :(";
+                            return View();
+                        }
                     }
                 }
             }
