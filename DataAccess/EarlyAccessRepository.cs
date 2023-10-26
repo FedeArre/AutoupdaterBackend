@@ -58,7 +58,7 @@ namespace DataAccess
 
         public IEnumerable<EarlyAccessGroup> FindAll()
         {
-            throw new NotImplementedException();
+            return db.EarlyAccess.Include(u => u.Users).ToList();
         }
 
         public EarlyAccessGroup FindById(string id)
@@ -110,6 +110,25 @@ namespace DataAccess
             try
             {
                 db.EarlyAccess.Update(entity);
+                db.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public EarlyAccessModObject GetEAModObject(string modId)
+        {
+            return db.EAModObjects.Where(m => m.ModId == modId).FirstOrDefault();
+        }
+
+        public bool UpdateEAMod(EarlyAccessModObject eamo)
+        {
+            try
+            {
+                db.EAModObjects.Update(eamo);
                 db.SaveChanges();
                 return true;
             }

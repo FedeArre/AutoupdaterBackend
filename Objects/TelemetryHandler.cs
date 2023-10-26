@@ -39,7 +39,6 @@ namespace Objects
 
             entity.Timestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
             ModData.Add(entity.IP, entity);
-            
             return true;
         }
         

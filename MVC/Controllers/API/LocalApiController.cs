@@ -23,18 +23,19 @@ namespace MVC.Controllers.API
         }
 
         [HttpPost, Route("heartbeat")]
+        [RestrictToLocalhost]
         public ActionResult<NotificationModel> Heartbeat(GameVersionDTO Versions)
         {
             versioning.GAME_PUBLIC_BUILDID = Versions.Public;
             versioning.GAME_TEST_BUILDID = Versions.Test;
             versioning.GAME_BETA_BUILDID = Versions.Beta;
 
-            Console.WriteLine(Versions.Public);
             NotificationModel notification = new NotificationModel();
             return notification;
         }
 
         [HttpPost, Route("tokencheck")]
+        [RestrictToLocalhost]
         public ActionResult<NotificationModel> TokenCheck(DiscordVerificationModel model)
         {
             NotificationModel nm = new NotificationModel();
@@ -76,5 +77,6 @@ namespace MVC.Controllers.API
                 return Accepted(nm);
             }
         }
+
     }
 }

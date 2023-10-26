@@ -10,5 +10,7 @@ namespace Objects.Repositories.Interfaces
         bool RemoveTesterFromGroup(EAS tester, string groupName, User owner);
         List<EarlyAccessGroup> FindGroupFromUser(User owner);
         EarlyAccessGroup FindSpecificGroupFromUser(string groupName, User owner);
+        EarlyAccessModObject GetEAModObject(string modId);
+        bool UpdateEAMod(EarlyAccessModObject eamo);
     }
 }

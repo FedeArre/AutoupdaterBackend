@@ -60,6 +60,7 @@ namespace DataAccess
         public Mod FindById(string id)
         {
             var m = db.Mods.Include(v => v.LatestVersion).Include(v => v.Allowed).Where(m => m.ModId == id).FirstOrDefault();
+
             if(m != null)
                 m.CPC = TelemetryHandler.GetInstance().GetCurrentPlayerCount(m.ModId);
             return m;

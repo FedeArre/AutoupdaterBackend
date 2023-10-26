@@ -64,9 +64,6 @@ namespace DataAccess.Migrations
                     b.Property<int>("CPC")
                         .HasColumnType("int");
 
-                    b.Property<string>("DownloadLink")
-                        .HasColumnType("text");
-
                     b.Property<string>("FileName")
                         .HasColumnType("text");
 
@@ -74,12 +71,6 @@ namespace DataAccess.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.Property<int>("PeakMax")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Version")
                         .HasColumnType("text");
 
                     b.HasKey("ModId");

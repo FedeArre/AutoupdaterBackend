@@ -39,22 +39,28 @@ namespace MVC.Controllers.API
                     Mod mod = modsRepo.FindById(m.modId);
                     if(mod != null)
                     {
-                        if(mod.Version != m.version /*&& /*!mod.DisableAutoupdating*/)
+                        if(mod.LatestVersion != null && mod.LatestVersion.Version != m.version)
                         {
-                            ModToSendDTO mts = new ModToSendDTO();
-                            mts.mod_id = mod.ModId;
-                            mts.file_name = mod.FileName;
-                            mts.current_download_link = mod.DownloadLink;
-                            mts.current_version = mod.Version;
-                            mts.mod_name = mod.Name;
+                            if(mod.LatestVersion.RequiredGameBuildId <= modsList.BuildId)
+                            {
+                                ModToSendDTO mts = new ModToSendDTO();
+                                mts.mod_id = mod.ModId;
+                                mts.file_name = mod.FileName;
+                                mts.current_download_link = mod.LatestVersion.DownloadLink;
+                                mts.current_version = mod.LatestVersion.Version;
+                                mts.mod_name = mod.Name;
 
-                            modsToUpdate.Add(mts);
+                                modsToUpdate.Add(mts);
+                            }
                         }
                     }
                 }
             }
             catch(Exception ex)
             {
+                Console.WriteLine("ISSUE AT MODS ENDPOINT!");
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.StackTrace);
                 return Problem();
             }
 
@@ -94,31 +100,25 @@ namespace MVC.Controllers.API
                 return BadRequest();
 
             Mod m = modsRepo.FindById(eaj.ModId);
-            if(m == null /*|| !m.EarlyAccessEnabled*/)
+            IEnumerable<EarlyAccessGroup> EAGs = earlyRepo.FindAll(); // don't ask me why, but groups wont load without this...
+
+            if(m == null)
             {
                 return Ok(false);
             }
 
-            EAS eas = null;
-            /*foreach (var ea in earlyRepo.FindByModId(eaj.ModId))
+            foreach(ModAllowed ma in m.Allowed)
             {
-                if (ea.Steam64 == eaj.SteamId)
+                if(ma.Group != null)
                 {
-                    eas = ea;
-                    break;
+                    foreach(EAS tester in ma.Group.Users)
+                    {
+                        if (tester.Steam64 == eaj.SteamId)
+                            return Ok(true);
+                    }
                 }
-            }*/
-            
-            return Ok(eas != null);
-        }
-
-        [HttpGet, Route("Autoupdater")]
-        public ActionResult<AutoupdaterDTO> Autoupdater()
-        {
-            AutoupdaterDTO auto = new AutoupdaterDTO();
-            auto.current_version = "v1.2.0";
-            auto.download_link = "empty";   
-            return Ok(auto);
+            }
+            return Ok(false);
         }
 
         [HttpGet, Route("playercount")]
@@ -168,39 +168,63 @@ namespace MVC.Controllers.API
             return Ok(allMods);
         }
 
-        [HttpGet, Route("eapatreon")]
+        [HttpPost, Route("eapatreon")]
         public ActionResult<bool> EAPatreon(PatreonEAModel model)
         {
             User u = userRepo.FindByToken(model.Token);
             if (String.IsNullOrWhiteSpace(model.Token) || u == null)
                 return BadRequest("Invalid token");
 
-            Mod m = modsRepo.FindById(model.DummyModId);
-            if (m == null /*|| !m.EarlyAccessEnabled*/)
-            {
-                return Ok(false);
-            }
+            IEnumerable<EarlyAccessGroup> EAGs = earlyRepo.FindAll(); // don't ask me why, but groups wont load without this...
 
-            /*foreach (var ea in earlyRepo.FindByModId(model.DummyModId))
+            foreach (var ea in EAGs)
             {
-                if (ea.Username == model.DiscordIdentifier)
+                if (ea.GroupName == model.Group)
                 {
-                    ea.Steam64 = model.NewSteamId;
-                    earlyRepo.Update(ea);
-
-                    List<string> mods = new List<string>();
-                    foreach(Mod mod in modsRepo.FindByAuthor(u.Username))
+                    EAS existingTester = null;
+                    foreach(var user in ea.Users)
                     {
-                        if (mod.ModId != model.DummyModId)
-                            mods.Add(mod.ModId);
+                        if(user.Username == model.DiscordIdentifier)
+                        {
+                            existingTester = user;
+                            break;
+                        }
                     }
 
-                    earlyRepo.CopyTestersToAll(mods, model.DummyModId);
-                    break;
+
+                    if(String.IsNullOrEmpty(model.NewSteamId))
+                    {
+                        if(existingTester != null)
+                        {
+                            ea.Users.Remove(existingTester);
+                            earlyRepo.Update(ea);
+                            return Ok($"User {model.DiscordIdentifier} removed");
+                        }
+                    }
+                    else
+                    {
+                        if (existingTester != null)
+                        {
+                            existingTester.Steam64 = model.NewSteamId;
+                            earlyRepo.Update(ea);
+                            return Ok($"{model.NewSteamId} was set for user {model.DiscordIdentifier} succesfully");
+                        }
+                        else
+                        {
+                            EAS newTester = new EAS();
+                            newTester.eag = ea;
+                            newTester.Username = model.DiscordIdentifier;
+                            newTester.Steam64 = model.NewSteamId;
+                            ea.Users.Add(newTester);
+
+                            earlyRepo.Update(ea);
+                            return Ok($"{model.NewSteamId} was added for user {model.DiscordIdentifier} successfully");
+                        }
+                    }
                 }
-            }*/
+            }
             
-            return Ok(false);
+            return Ok($"No action taken on user: {model.DiscordIdentifier} | {model.NewSteamId}");
         }
     }
 }

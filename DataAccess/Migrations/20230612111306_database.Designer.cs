@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(AutoupdaterContext))]
-    [Migration("20230611145848_database")]
+    [Migration("20230612111306_database")]
     partial class database
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -66,9 +66,6 @@ namespace DataAccess.Migrations
                     b.Property<int>("CPC")
                         .HasColumnType("int");
 
-                    b.Property<string>("DownloadLink")
-                        .HasColumnType("text");
-
                     b.Property<string>("FileName")
                         .HasColumnType("text");
 
@@ -76,12 +73,6 @@ namespace DataAccess.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.Property<int>("PeakMax")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Version")
                         .HasColumnType("text");
 
                     b.HasKey("ModId");

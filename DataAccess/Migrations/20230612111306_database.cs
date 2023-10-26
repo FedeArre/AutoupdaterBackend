@@ -27,12 +27,9 @@ namespace DataAccess.Migrations
                 {
                     ModId = table.Column<string>(nullable: false),
                     Name = table.Column<string>(nullable: true),
-                    Version = table.Column<string>(nullable: true),
-                    DownloadLink = table.Column<string>(nullable: true),
                     FileName = table.Column<string>(nullable: true),
                     ModAuthor = table.Column<string>(nullable: true),
-                    CPC = table.Column<int>(nullable: false),
-                    PeakMax = table.Column<int>(nullable: false)
+                    CPC = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {

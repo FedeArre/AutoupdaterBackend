@@ -8,5 +8,6 @@ namespace MVC.Models
     {
         public string ModId { get; set; }
         public string ModName { get; set; }
+        public string ModFileName { get; set; }
     }
 }

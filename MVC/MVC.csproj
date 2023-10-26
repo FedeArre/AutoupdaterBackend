@@ -32,6 +32,7 @@
   <ItemGroup>
     <Folder Include="NewFolder\" />
     <Folder Include="wwwroot\modfiles\" />
+    <Folder Include="wwwroot\eamodfiles\" />
   </ItemGroup>
 
 </Project>

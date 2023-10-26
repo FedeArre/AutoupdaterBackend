@@ -15,7 +15,8 @@ namespace DataAccess
         public DbSet<EarlyAccessGroup> EarlyAccess { get; set; }
         public DbSet<EAS> EarlyAccessTesters { get; set; }
         public DbSet<ModDailyData> ModDailyData { get; set; }
-    
+        public DbSet<EarlyAccessModObject> EAModObjects { get; set; }
+
         public AutoupdaterContext(DbContextOptions<AutoupdaterContext> options)
         : base(options)
         {

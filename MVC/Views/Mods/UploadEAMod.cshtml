@@ -1,0 +1,31 @@
+﻿@model ModUpdateModel
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+@if (Model == null)
+{
+    <p>Something went wrong!</p>
+}
+else
+{
+    <form method="post" enctype="multipart/form-data">
+        <p>Generating EA mod <b>@Model.ModName</b> (ID: <b>@Model.ModId</b>)</p>
+        <br>
+        <input type="hidden" value="@Model.ModId" asp-for="ModId">
+        <input type="hidden" value="@Model.ModName" asp-for="ModName">
+
+        <div id="uploadFileDiv">
+            <br>
+            <label for="modUploadDialog" class="form-label">Upload your mod: </label>
+            <input type="file" name="ModFile" id="modFileUpload">
+        </div>
+
+        <br>
+        <input type="submit">
+    </form>
+}
+
+@ViewBag.Msg
