@@ -31,13 +31,15 @@ namespace MVC.Controllers.API
             if (modsList == null || modsList.mods == null)
                 return BadRequest();
 
-            Console.WriteLine($"[SERVER]: {HttpContext.Connection.RemoteIpAddress.ToString()} using {modsList.mods.Capacity} mods");
+            Console.WriteLine($"[SERVER]: {HttpContext.Connection.RemoteIpAddress.ToString()} using {modsList.mods.Count} mods");
 
             List<ModToSendDTO> modsToUpdate = new List<ModToSendDTO>();
             try
             {
                 foreach(var m in modsList.mods)
                 {
+                    if (string.IsNullOrEmpty(m.modId)) continue;
+
                     Mod mod = modsRepo.FindById(m.modId);
                     if(mod != null)
                     {
@@ -135,7 +137,7 @@ namespace MVC.Controllers.API
             Console.WriteLine($"[SERVER]: Early Access lookup for key {eaj.Key} by {eaj.SteamId}");
 
             if(eamo == null)
-                return NoContent();
+                return NotFound();
 
             IEnumerable<EarlyAccessGroup> EAGs = earlyRepo.FindAll(); // don't ask me why, but groups wont load without this...
 
@@ -151,12 +153,16 @@ namespace MVC.Controllers.API
                     {
                         if (tester.Steam64 == eaj.SteamId)
                         {
+                            Console.WriteLine($"[SERVER]: Given access to {eaj.SteamId}");
+
                             return File(System.IO.File.OpenRead(eamo.DownloadLink), "application/octet-stream");
                         }
                     }
                 }
             }
-            return Forbid();
+
+            Console.WriteLine($"[SERVER]: No access given to {eaj.SteamId} - Not in any group");
+            return NoContent();
         }
 
         [HttpGet, Route("playercount")]
